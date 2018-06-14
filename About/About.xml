@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+    <name>Stories, Missions and Objectives</name>
+	<targetVersion>0.18.0</targetVersion>
+    <author>Telefonmast</author>
+    <description>
+		This is a core and tool for modders!
+		Check the main page to find out how to create your own Storyline!
+	</description>
+</ModMetaData>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+		
+	<Def Name="MissionBase" Abstract="True" Class="MissionsAndObjectives.MissionDef">	
+	</Def>
+		
+	<Def Name="ObjectiveBase" Abstract="True" Class="MissionsAndObjectives.ObjectiveDef">	
+	</Def>
+	
+	
+	
+</Defs>
