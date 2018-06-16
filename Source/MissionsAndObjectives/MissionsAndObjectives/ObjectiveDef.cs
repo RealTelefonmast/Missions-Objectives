@@ -11,23 +11,21 @@ namespace MissionsAndObjectives
 {
     public class ObjectiveDef : Def
     {
-        public List<ThingDef> targetThings = new List<ThingDef>();
-
-        public List<ThingDef> stationDefs = new List<ThingDef>();
-
-        public List<ThingDef> rewards = new List<ThingDef>();
-
-        public List<PawnKindDef> targetPawns = new List<PawnKindDef>();
-
-        public float distanceToTarget = 0;
-
-        public RewardType rewardType = RewardType.None;
-
         public ObjectiveType objectiveType = ObjectiveType.None;
 
         public List<SkillRequirement> skillRequirements = new List<SkillRequirement>();
 
         public List<ObjectiveDef> objectiveRequisites = new List<ObjectiveDef>();
+
+        public List<ThingDef> targetThings = new List<ThingDef>();
+
+        public List<PawnKindDef> targetPawns = new List<PawnKindDef>();
+
+        public List<ThingDef> stationDefs = new List<ThingDef>();
+
+        public int killAmount = 0;
+
+        public float distanceToTarget = 0;
 
         public List<ObjectiveDef> dependantOn = new List<ObjectiveDef>();
 
@@ -51,7 +49,7 @@ namespace MissionsAndObjectives
             {
                 yield return "Objective of type 'Wait' is missing a timer value.";
             }
-            if (((objectiveType == ObjectiveType.Discover || objectiveType == ObjectiveType.Craft || objectiveType == ObjectiveType.Construct || objectiveType == ObjectiveType.Destroy) && targetThings.NullOrEmpty()) || (objectiveType == ObjectiveType.Hunt && targetPawns.NullOrEmpty()))
+            if (((objectiveType == ObjectiveType.Discover || objectiveType == ObjectiveType.Craft || objectiveType == ObjectiveType.Construct || objectiveType == ObjectiveType.Destroy) && targetThings.NullOrEmpty() || (targetPawns.NullOrEmpty()) && objectiveType == ObjectiveType.Hunt))
             {
                 yield return "Objective is missing a target.";
             }
@@ -59,7 +57,7 @@ namespace MissionsAndObjectives
             {
                 yield return "Objective of type 'Examine' is missing a work value.";
             }
-            if (objectiveType == ObjectiveType.Examine && (targetThings.NullOrEmpty() || targetPawns.NullOrEmpty()))
+            if (objectiveType == ObjectiveType.Examine && targetThings.NullOrEmpty() ? targetPawns.NullOrEmpty() : false)
             {
                 yield return "Objective of type 'Examine' is missing a target.";
             }
@@ -77,7 +75,12 @@ namespace MissionsAndObjectives
         {
             get
             {
-                return Find.World.GetComponent<WorldComponent_Missions>().Missions.Find(m => m.Objectives.Any(o => o.def == this)).Objectives.Find(o => o.def == this).Finished;
+                Objective obj;
+                if((obj = Find.World.GetComponent<WorldComponent_Missions>().Missions.Find(m => m.Objectives.Any(o => o.def == this))?.Objectives.Find(o => o.def == this)) != null)
+                {
+                    return obj.Finished;
+                }
+                return false;
             }
         }
 
@@ -163,13 +166,6 @@ namespace MissionsAndObjectives
         Craft,
         Wait,
         Hunt,
-        None
-    }
-
-    public enum RewardType
-    {
-        DropPods,
-        SpawnOnObjective,
         None
     }
 }

@@ -9,20 +9,35 @@ using Verse;
 
 namespace MissionsAndObjectives
 {
-    public class WorldComponent_Missions : WorldComponent
+    public class WorldComponent_Missions : WorldComponent, ILoadReferenceable
     {
         public List<Mission> Missions = new List<Mission>();
 
         public List<Thing> tempThingList = new List<Thing>();
 
+        public List<ModContentPackWrapper> ModFolder = new List<ModContentPackWrapper>();
+
         public override void ExposeData()
         {
-            Scribe_Collections.Look(ref Missions, "Mission", LookMode.Deep);
-            base.ExposeData();
+            Scribe_Collections.Look(ref ModFolder, "ModFolder");
+            Scribe_Collections.Look(ref Missions, "Mission");
         }
 
         public WorldComponent_Missions(World world) : base(world)
         {
+        }
+
+        public static WorldComponent_Missions MissionHandler
+        {
+            get
+            {
+                return Find.World.GetComponent<WorldComponent_Missions>();
+            }
+        }
+
+        public string GetUniqueLoadID()
+        {
+            return this.ToString();
         }
 
         public override void FinalizeInit()
@@ -54,6 +69,14 @@ namespace MissionsAndObjectives
             {
                 foreach (Objective objective in mission.Objectives)
                 {
+                    if (objective.Finished)
+                    {
+                        objective.Notify_Finish();
+                    }
+                    if (objective.Failed)
+                    {
+                        objective.Notify_Fail();
+                    }
                     if (objective.Active && !objective.Finished)
                     {
                         mission.TimePassed(objective, 1);

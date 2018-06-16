@@ -21,7 +21,7 @@ namespace MissionsAndObjectives
         {
             get
             {
-                return DefDatabase<MissionIncidentDef>.AllDefsListForReading.Any((MissionIncidentDef x) => x.missionUnlocks.Contains(this));
+                return DefDatabase<MissionIncidentDef>.AllDefsListForReading.Any((MissionIncidentDef x) => x.missionUnlocks.Contains(this)) || DefDatabase<ObjectiveDef>.AllDefsListForReading.Any(o => o.incidentsOnCompletion.Any(ic => ic.missionUnlocks.Contains(this)) || o.incidentsOnFail.Any(ic => ic.missionUnlocks.Contains(this)));
             }
         }
 

@@ -8,8 +8,18 @@ using RimWorld;
 
 namespace MissionsAndObjectives
 {
+    public enum MissionIncidentType
+    {
+        CustomWorker,
+        MissionStart
+    }
+
     public class MissionIncidentDef : IncidentDef
     {
+        public Type customWorker;
+
+        public MissionIncidentType type = MissionIncidentType.MissionStart;
+
         public List<JobDef> anyJobNeeded = new List<JobDef>();
 
         public List<ThingDef> thingRequisites = new List<ThingDef>();

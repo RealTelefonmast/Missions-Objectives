@@ -6,15 +6,15 @@ namespace MissionsAndObjectives
 {
     public class MissionControlDef : Def
     {
-        public string bannerTexture;
+        public string boxActive = "UI/Icons/Active";
 
-        public string boxActive;
+        public string boxFinished = "UI/Icons/Finished";
 
-        public string boxFinished;
+        public string boxFailed = "UI/Icons/Failed";
 
-        public string boxFailed;
+        public ColorInt color = new ColorInt(45, 45, 45);
 
-        public float workFloat;
+        public ColorInt borderColor = new ColorInt(255, 255, 255);
 
         public static MissionControlDef Named(string defName)
         {

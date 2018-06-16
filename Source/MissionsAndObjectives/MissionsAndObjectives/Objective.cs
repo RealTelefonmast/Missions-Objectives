@@ -23,8 +23,15 @@ namespace MissionsAndObjectives
 
         private int timer;
 
+        public DiscoverAndKillTracker killTracker;
+
         public Objective()
         {
+        }
+
+        public Objective(Mission parent)
+        {
+            this.parent = parent;
         }
 
         public Objective(ObjectiveDef def, Mission parent)
@@ -32,16 +39,24 @@ namespace MissionsAndObjectives
             this.def = def;
             this.parent = parent;
             this.timer = def.TimerTicks;
+            if(killTracker == null)
+            {
+                killTracker = new DiscoverAndKillTracker(def.targetThings, def.targetPawns, def.killAmount);
+            }
         }
 
         public void ExposeData()
         {
             Scribe_Defs.Look(ref def, "def");
-            Scribe_Deep.Look(ref parent, "parent");
             Scribe_Values.Look(ref finishedOnce, "finishedOnce");
             Scribe_Values.Look(ref failedOnce, "failedOnce");
             Scribe_Values.Look(ref progress, "progress");
             Scribe_Values.Look(ref timer, "timer");
+            Scribe_Deep.Look(ref killTracker, "killTracker", new object[] {
+                def.targetThings,
+                def.targetPawns,
+                def.killAmount,
+            });
         }
 
         // bool Getters
@@ -60,33 +75,19 @@ namespace MissionsAndObjectives
             {
                 return false;
             }
+            if (!def.targetThings.NullOrEmpty() && thing != null && !def.targetThings.Contains(thing.def))
+            {
+                return false;
+            }
             if (!def.skillRequirements.All(sr => pawn.skills.skills.Any(sr2 => sr2.def == sr.skillDef && sr2.levelInt >= sr.skillLevel)))
             {
                 return false;
             }
-            if (def.objectiveType == ObjectiveType.Hunt)
+            if (def.objectiveType == ObjectiveType.Examine || def.objectiveType == ObjectiveType.Research)
             {
-                if (!TargetPawnsAvailable)
-                {
-                    return false;
-                }
+                return true;
             }
-            if (def.objectiveType == ObjectiveType.Examine)
-            {
-                if (!def.targetThings.NullOrEmpty() && thing != null && !def.targetThings.Contains(thing.def))
-                {
-                    return false;
-                }
-            }
-            if (def.objectiveType == ObjectiveType.Examine)
-            {
-
-                if (!Find.AnyPlayerHomeMap.listerThings.AllThings.Any((Thing x) => def.targetThings.Contains(x.def)))
-                {
-                    return false;
-                }
-            }
-            return true;
+            return false;
         }
 
         public bool Active
@@ -129,15 +130,7 @@ namespace MissionsAndObjectives
         {
             get
             {
-                return def.targetThings.All(def => !Find.AnyPlayerHomeMap.listerThings.ThingsOfDef(def).NullOrEmpty());
-            }
-        }
-
-        public bool TargetPawnsAvailable
-        {
-            get
-            {
-                return def.targetPawns.All(def => !Find.AnyPlayerHomeMap.mapPawns.AllPawns.Any(pawn => pawn.kindDef == def));
+                return def.targetThings.All(def => !Find.AnyPlayerHomeMap.listerThings.ThingsOfDef((def as ThingDef)).NullOrEmpty());
             }
         }
 
@@ -145,12 +138,23 @@ namespace MissionsAndObjectives
         {
             get
             {
+                if(def.killAmount > 0)
+                {
+                    if(killTracker.GetCountKilled >= def.killAmount)
+                    {
+                        return true;
+                    }
+                }
                 if (def.workCost > 0)
                 {
                     if (GetProgress >= def.workCost)
                     {
                         return true;
                     }
+                }
+                if (def.objectiveType == ObjectiveType.Discover)
+                {
+                    return killTracker.AllDiscovered;
                 }
                 if (def.objectiveType == ObjectiveType.Construct || def.objectiveType == ObjectiveType.Craft)
                 {
@@ -227,7 +231,11 @@ namespace MissionsAndObjectives
         {
             if (!finishedOnce)
             {
-
+                Messages.Message("FinishedObjective".Translate() + ": " + def.LabelCap, MessageTypeDefOf.PositiveEvent);
+                foreach (IncidentProperties props in def.incidentsOnCompletion)
+                {
+                    props.Notify_Execute(Find.AnyPlayerHomeMap);
+                }
             }
             finishedOnce = true;
         }
@@ -236,7 +244,11 @@ namespace MissionsAndObjectives
         {
             if (!failedOnce)
             {
-
+                Messages.Message("FailedObjective".Translate() + ": " + def.LabelCap, MessageTypeDefOf.NegativeEvent);
+                foreach (IncidentProperties props in def.incidentsOnFail)
+                {
+                    props.Notify_Execute(Find.AnyPlayerHomeMap);                  
+                }
             }
             failedOnce = true;
         }

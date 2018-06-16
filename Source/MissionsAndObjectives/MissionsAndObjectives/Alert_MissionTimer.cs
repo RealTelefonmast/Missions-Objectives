@@ -30,7 +30,7 @@ namespace MissionsAndObjectives
 
         public override AlertReport GetReport()
         {
-            if (Find.World.GetComponent<WorldComponent_Missions>().Missions.Any((Mission x) => x.Objectives.Any((y => y.Active && y.GetTimer > 0))))
+            if (Find.World.GetComponent<WorldComponent_Missions>().Missions.Any((Mission x) => x.Objectives.Any((obj => obj.Active && !obj.Finished && obj.GetTimer > 0))))
             {
                 return AlertReport.Active;
             }

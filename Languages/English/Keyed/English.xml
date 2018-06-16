@@ -5,5 +5,15 @@
   <NewMission>New mission available!</NewMission>
   <NewMissionDesc>You have a new mission available, check it out in the missions tab!</NewMissionDesc>
   <StationNeeded>Required</StationNeeded>
+  <Targets>Target</Targets>
+  <AllTargets>{0} is the strongest out of the targets, it is recommended to take them out the first, however there are weaker options:\n\n{1}</AllTargets>
   
-  </LanguageData>
+  <MissionTimer>Timer active!</MissionTimer>
+  <MissionTimerDesc>A timer is active! Don't forget to finish the objective on time.</MissionTimerDesc>
+  <ObjectiveSkills>This objective requires pawns with certain skills:\n\n{0}\n{1}</ObjectiveSkills>
+  <ObjectivePawns>The following pawns are capable of the job:\n\n{0}</ObjectivePawns>
+  <PotentialStations>{0} is the best option for this job, however, the following objects can be used as well:\n\n{1}</PotentialStations>
+  
+  <FinishedObjective>Objective Finished</FinishedObjective>
+  
+</LanguageData>

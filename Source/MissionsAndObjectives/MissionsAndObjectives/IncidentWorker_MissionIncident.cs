@@ -7,7 +7,7 @@ using RimWorld;
 
 namespace MissionsAndObjectives
 {
-    public class IncidentWorker_MissionStart : IncidentWorker
+    public class IncidentWorker_MissionIncident : IncidentWorker
     {
         public MissionIncidentDef Def
         {
@@ -21,15 +21,26 @@ namespace MissionsAndObjectives
         {
             get
             {
-                return Find.World.GetComponent<WorldComponent_Missions>();
+                return WorldComponent_Missions.MissionHandler;
             }
         }
 
         protected override bool TryExecuteWorker(IncidentParms parms)
         {
-            foreach (MissionDef mission in Def.missionUnlocks)
+            if (Def.type == MissionIncidentType.MissionStart)
             {
-                Missions.AddNewMission(mission);
+                foreach (MissionDef mission in Def.missionUnlocks)
+                {
+                    Missions.AddNewMission(mission);
+                }
+            }
+            else
+            {
+                IncidentWorker worker = (IncidentWorker)Activator.CreateInstance(Def.customWorker);
+                if (worker.CanFireNow(parms.target))
+                {
+                    return worker.TryExecute(parms);
+                }
             }
             return true;
 

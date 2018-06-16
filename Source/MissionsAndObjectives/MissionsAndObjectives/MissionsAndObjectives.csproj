@@ -53,8 +53,10 @@
     <Compile Include="Alert_MissionTimer.cs" />
     <Compile Include="Alert_NewMission.cs" />
     <Compile Include="Comp_Upgrade.cs" />
+    <Compile Include="DiscoverAndKillTracker.cs" />
+    <Compile Include="IncidentFilter.cs" />
     <Compile Include="IncidentProperties.cs" />
-    <Compile Include="IncidentWorker_MissionStart.cs" />
+    <Compile Include="IncidentWorker_MissionIncident.cs" />
     <Compile Include="JobDriver_DoMissionObjective.cs" />
     <Compile Include="JobInfo.cs" />
     <Compile Include="JobWithObjects.cs" />
@@ -67,10 +69,13 @@
     <Compile Include="MissionPatches.cs" />
     <Compile Include="MissionThingDef.cs" />
     <Compile Include="MissionUtils.cs" />
+    <Compile Include="ModContentPackWrapper.cs" />
     <Compile Include="Objective.cs" />
     <Compile Include="ObjectiveDef.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SkillRequirement.cs" />
+    <Compile Include="ThingDistancer.cs" />
+    <Compile Include="ThingWithSkyfaller.cs" />
     <Compile Include="WorkGiver_DoMissionObjective.cs" />
     <Compile Include="WorldComponent_Missions.cs" />
   </ItemGroup>

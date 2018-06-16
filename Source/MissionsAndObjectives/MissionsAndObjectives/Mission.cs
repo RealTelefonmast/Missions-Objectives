@@ -37,9 +37,11 @@ namespace MissionsAndObjectives
         {
             Scribe_Values.Look(ref failed, "failed");
             Scribe_Values.Look(ref seen, "seen");
-            Scribe_Collections.Look(ref Objectives, "Objectives");
+            Scribe_Collections.Look(ref Objectives, "Objectives", LookMode.Deep, new object[] {
+                this,
+            });
             Scribe_Defs.Look(ref def, "def");
-            Scribe_Deep.Look(ref parent, "parent");
+            Scribe_References.Look(ref parent, "parent");
         }
 
         public Objective ObjectiveByDef(ObjectiveDef def)
@@ -57,7 +59,7 @@ namespace MissionsAndObjectives
 
         public void WorkPerformed(ObjectiveDef objective, float amount)
         {
-            amount *= MCD.MainMissionControlDef.workFloat;
+            amount *= 0.009f;
             if (DebugSettings.fastResearch)
             {
                 amount *= 500f;

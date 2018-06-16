@@ -8,7 +8,7 @@ F:\Steam\steamapps\common\RimWorld\Mods\MissionCore\Source\MissionsAndObjectives
 F:\Steam\steamapps\common\RimWorld\Mods\MissionCore\Source\MissionsAndObjectives\MissionsAndObjectives\bin\Debug\NAudio.dll
 F:\Steam\steamapps\common\RimWorld\Mods\MissionCore\Source\MissionsAndObjectives\MissionsAndObjectives\bin\Debug\NVorbis.dll
 F:\Steam\steamapps\common\RimWorld\Mods\MissionCore\Source\MissionsAndObjectives\MissionsAndObjectives\bin\Debug\UnityEngine.UI.dll
-F:\Steam\steamapps\common\RimWorld\Mods\MissionCore\Source\MissionsAndObjectives\MissionsAndObjectives\obj\Debug\MissionsAndObjectives.csprojResolveAssemblyReference.cache
 F:\Steam\steamapps\common\RimWorld\Mods\MissionCore\Source\MissionsAndObjectives\MissionsAndObjectives\obj\Debug\MissionsAndObjectives.csproj.CoreCompileInputs.cache
 F:\Steam\steamapps\common\RimWorld\Mods\MissionCore\Source\MissionsAndObjectives\MissionsAndObjectives\obj\Debug\MissionsAndObjectives.dll
 F:\Steam\steamapps\common\RimWorld\Mods\MissionCore\Source\MissionsAndObjectives\MissionsAndObjectives\obj\Debug\MissionsAndObjectives.pdb
+F:\Steam\steamapps\common\RimWorld\Mods\MissionCore\Source\MissionsAndObjectives\MissionsAndObjectives\obj\Debug\MissionsAndObjectives.csprojResolveAssemblyReference.cache

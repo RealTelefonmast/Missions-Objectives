@@ -3,11 +3,9 @@
 
 	<Def Class="MissionsAndObjectives.MissionControlDef">
 		<defName>MainMissionControlDef</defName>
-		<bannerTexture>UI/MissionBanner</bannerTexture>
 		<boxActive>UI/Icons/Active</boxActive>
 		<boxFinished>UI/Icons/Finished</boxFinished>
 		<boxFailed>UI/Icons/Failed</boxFailed>
-		<workFloat>0.009</workFloat>
 	</Def>
   
 </Defs>
