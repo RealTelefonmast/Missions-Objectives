@@ -100,7 +100,7 @@ namespace MissionsAndObjectives
                 }
                 foreach (SkillRequirement SR in ObjectiveDef.skillRequirements)
                 {
-                    actor.skills.Learn(SR.skillDef, 0.11f, false);
+                    actor.skills.Learn(SR.skill, 0.11f, false);
                 }
                 Mission.WorkPerformed(ObjectiveDef, num);
                 actor.GainComfortFromCellIfPossible();

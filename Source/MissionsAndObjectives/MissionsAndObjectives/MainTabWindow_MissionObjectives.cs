@@ -56,7 +56,7 @@ namespace MissionsAndObjectives
 
         public List<Pawn> CapablePawns(ObjectiveDef objective)
         {
-            return Find.AnyPlayerHomeMap.mapPawns.AllPawns.Where(p => p.IsColonist && objective.skillRequirements.All((SkillRequirement x) => p.skills.skills.Any(sr2 => sr2.def == x.skillDef && sr2.levelInt >= x.skillLevel))).ToList();
+            return Find.AnyPlayerHomeMap.mapPawns.AllPawns.Where(p => p.IsColonist && objective.skillRequirements.All((SkillRequirement x) => x.PawnSatisfies(p))).ToList();
         }
 
         public override void DoWindowContents(Rect inRect)
@@ -96,7 +96,7 @@ namespace MissionsAndObjectives
             for (int i = 0; i < LoadedModManager.RunningMods.Count(); i++)
             {
                 ModContentPack mcp = LoadedModManager.RunningMods.ElementAt(i);
-                if (mcp.AllDefs.Any(d => d is MissionDef))
+                if (mcp.AllDefs.Any(d => d is MissionDef && AvailableMissions.Any(m => m.def == d)))
                 {               
                     ii++;
                     Def def = mcp.AllDefs.ToList().Find(d => d is MissionControlDef);
@@ -295,7 +295,7 @@ namespace MissionsAndObjectives
                 StringBuilder skills = new StringBuilder();
                 foreach (SkillRequirement skill in objectiveDef.skillRequirements)
                 {
-                    skills.AppendLine("    " + skill.skillDef.LabelCap + ": " + skill.skillLevel);
+                    skills.AppendLine("    " + skill.skill.LabelCap + ": " + skill.minLevel);
                 }
                 StringBuilder pawns = new StringBuilder();
                 foreach (Pawn p in pawnList)

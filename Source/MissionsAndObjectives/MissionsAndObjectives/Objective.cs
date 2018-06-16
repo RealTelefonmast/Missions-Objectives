@@ -79,7 +79,7 @@ namespace MissionsAndObjectives
             {
                 return false;
             }
-            if (!def.skillRequirements.All(sr => pawn.skills.skills.Any(sr2 => sr2.def == sr.skillDef && sr2.levelInt >= sr.skillLevel)))
+            if (!def.skillRequirements.All(sr => sr.PawnSatisfies(pawn)))
             {
                 return false;
             }

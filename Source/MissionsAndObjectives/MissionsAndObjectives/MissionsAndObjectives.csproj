@@ -73,7 +73,6 @@
     <Compile Include="Objective.cs" />
     <Compile Include="ObjectiveDef.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SkillRequirement.cs" />
     <Compile Include="ThingDistancer.cs" />
     <Compile Include="ThingWithSkyfaller.cs" />
     <Compile Include="WorkGiver_DoMissionObjective.cs" />

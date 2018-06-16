@@ -40,7 +40,7 @@ namespace MissionsAndObjectives
         public void ExposeData()
         {
             Scribe_Values.Look(ref destroyedThings, "destroyedThings", 0, true);
-            Scribe_Values.Look(ref discoveredThings, "discoveredThings");
+            Scribe_Collections.Look(ref discoveredThings, "discoveredThings");
         }
 
         public int GetCountKilled

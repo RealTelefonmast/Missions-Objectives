@@ -161,7 +161,7 @@ namespace MissionsAndObjectives
                     {
                         if (objective.Active && !objective.def.IsManualJob)
                         {
-                            pawnList.AddRange(Find.AnyPlayerHomeMap.mapPawns.AllPawns.Where(p => p.IsColonist && objective.def.skillRequirements.All((SkillRequirement x) => p.skills.skills.Any(sr2 => sr2.def == x.skillDef && sr2.levelInt >= x.skillLevel))).ToList());
+                            pawnList.AddRange(Find.AnyPlayerHomeMap.mapPawns.AllPawns.Where(p => p.IsColonist && objective.def.skillRequirements.All((SkillRequirement x) => x.PawnSatisfies(p))).ToList());
                         }
                     }
                 }

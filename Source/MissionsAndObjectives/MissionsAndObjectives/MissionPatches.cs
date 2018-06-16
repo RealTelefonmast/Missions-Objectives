@@ -26,7 +26,7 @@ namespace MissionsAndObjectives
 
         [HarmonyPatch(typeof(Designator_Build))]
         [HarmonyPatch("Visible", 0)]
-        internal static class Harmony_Designator_Build_Patch
+        internal static class DesignatorBuild_Patch
         {
             public static void Postfix(Designator_Build __instance, ref bool __result)
             {
@@ -39,6 +39,28 @@ namespace MissionsAndObjectives
                         return;
                     }
                     __result = false;
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(RecipeDef))]
+        [HarmonyPatch("AvailableNow", 0)]
+        internal static class RecipeDef_Patch
+        {
+            public static void Postfix(RecipeDef __instance, ref bool __result)
+            {
+                foreach(ThingCountClass count in __instance.products)
+                {
+                    ThingDef def = count.thingDef;
+                    if(def is MissionThingDef && !DebugSettings.godMode && (def as MissionThingDef).objectivePrerequisites != null)
+                    {
+                        if ((def as MissionThingDef).objectivePrerequisites.Any((ObjectiveDef x) => x.IsFinished))
+                        {
+                            __result = true;
+                            return;
+                        }
+                        __result = false;
+                    }
                 }
             }
         }

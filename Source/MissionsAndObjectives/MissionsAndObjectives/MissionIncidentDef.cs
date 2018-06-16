@@ -75,10 +75,14 @@ namespace MissionsAndObjectives
         {
             if (!anyJobNeeded.NullOrEmpty())
             {
-                Pawn pawn = map.mapPawns.AllPawns.Where((Pawn x) => x.IsColonist && anyJobNeeded.Contains(x.CurJob.def))?.RandomElement() ?? null;
-                if (pawn == null)
+                IEnumerable<Pawn> pawns = map.mapPawns.AllPawns.Where((Pawn x) => x.IsColonist && anyJobNeeded.Contains(x.CurJob.def));
+                if (!pawns.ToList().NullOrEmpty())
                 {
-                    return false;
+                    Pawn pawn = pawns.RandomElement();
+                    if (pawn == null)
+                    {
+                        return false;
+                    }
                 }
             }
             return true;
