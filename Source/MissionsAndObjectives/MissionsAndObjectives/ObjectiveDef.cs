@@ -29,6 +29,8 @@ namespace MissionsAndObjectives
 
         public List<ObjectiveDef> dependantOn = new List<ObjectiveDef>();
 
+        public List<ObjectiveDef> failOn = new List<ObjectiveDef>();
+
         public List<IncidentProperties> incidentsOnCompletion = new List<IncidentProperties>();
 
         public List<IncidentProperties> incidentsOnFail = new List<IncidentProperties>();

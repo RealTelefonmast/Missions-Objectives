@@ -138,6 +138,10 @@ namespace MissionsAndObjectives
         {
             get
             {
+                if (Failed)
+                {
+                    return false;
+                }
                 if(def.killAmount > 0)
                 {
                     if(killTracker.GetCountKilled >= def.killAmount)
@@ -179,6 +183,10 @@ namespace MissionsAndObjectives
         {
             get
             {
+                if (WorldComponent_Missions.MissionHandler.Missions.Any(m => m.Objectives.Any(o => o.Finished && def.failOn.Contains(o.def))))
+                {
+                    return true;
+                }
                 if (def.TimerTicks > 0 && def.objectiveType != ObjectiveType.Wait && GetTimer <= 0)
                 {
                     return true;
