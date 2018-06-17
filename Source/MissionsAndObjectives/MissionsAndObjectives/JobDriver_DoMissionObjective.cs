@@ -105,7 +105,7 @@ namespace MissionsAndObjectives
                 Mission.WorkPerformed(ObjectiveDef, num);
                 actor.GainComfortFromCellIfPossible();
             };
-            doObjective.FailOn(() => Objective.Finished || ObjectiveDef.distanceToTarget > 0 ? !GenSight.LineOfSight(Actor.Position, TargetA.Cell, Map) ||  Actor.Position.DistanceTo(TargetA.Cell) > ObjectiveDef.distanceToTarget : false);
+            doObjective.FailOn(() => Objective.Failed || Objective.Finished || ObjectiveDef.distanceToTarget > 0 ? !GenSight.LineOfSight(Actor.Position, TargetA.Cell, Map) ||  Actor.Position.DistanceTo(TargetA.Cell) > ObjectiveDef.distanceToTarget : false);
             doObjective.WithProgressBar(TargetIndex.A, () => Objective.ProgressPct, false, -0.5f);
             doObjective.defaultCompleteMode = ToilCompleteMode.Delay;
             doObjective.defaultDuration = 4000;

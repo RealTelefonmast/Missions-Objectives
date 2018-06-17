@@ -77,7 +77,7 @@ namespace MissionsAndObjectives
                     {
                         objective.Notify_Fail();
                     }
-                    if (objective.Active && !objective.Finished)
+                    if (objective.Active && !objective.Finished && !objective.Failed)
                     {
                         mission.TimePassed(objective, 1);
                     }

@@ -138,7 +138,7 @@ namespace MissionsAndObjectives
         {
             get
             {
-                if (Failed)
+                if (failedOnce)
                 {
                     return false;
                 }
