@@ -3,6 +3,7 @@
 
 	<Def Class="MissionsAndObjectives.MissionControlDef">
 		<defName>MainMissionControlDef</defName>
+		<label>Standard</label>
 		<boxActive>UI/Icons/Active</boxActive>
 		<boxFinished>UI/Icons/Finished</boxFinished>
 		<boxFailed>UI/Icons/Failed</boxFailed>
