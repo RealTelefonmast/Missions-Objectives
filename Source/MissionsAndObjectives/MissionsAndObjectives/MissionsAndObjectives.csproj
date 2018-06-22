@@ -52,8 +52,7 @@
   <ItemGroup>
     <Compile Include="Alert_MissionTimer.cs" />
     <Compile Include="Alert_NewMission.cs" />
-    <Compile Include="Comp_Upgrade.cs" />
-    <Compile Include="DiscoverAndKillTracker.cs" />
+    <Compile Include="ThingTracker.cs" />
     <Compile Include="IncidentFilter.cs" />
     <Compile Include="IncidentProperties.cs" />
     <Compile Include="IncidentWorker_MissionIncident.cs" />
@@ -73,7 +72,7 @@
     <Compile Include="Objective.cs" />
     <Compile Include="ObjectiveDef.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ThingDistancer.cs" />
+    <Compile Include="ThingValue.cs" />
     <Compile Include="ThingWithSkyfaller.cs" />
     <Compile Include="WorkGiver_DoMissionObjective.cs" />
     <Compile Include="WorldComponent_Missions.cs" />

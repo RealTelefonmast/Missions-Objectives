@@ -17,8 +17,20 @@ namespace MissionsAndObjectives
 
         public List<ModContentPackWrapper> ModFolder = new List<ModContentPackWrapper>();
 
+        public ModContentPackWrapper theme;
+
+        public bool openedOnce = false;
+
+        public Vector2 missionScrollPos = Vector2.zero;
+
+        public Vector2 objectiveScrollPos = Vector2.zero;
+
         public override void ExposeData()
         {
+            Scribe_Values.Look(ref objectiveScrollPos, "objectiveScrollPos");
+            Scribe_Values.Look(ref missionScrollPos, "missionScrollPos");
+            Scribe_Values.Look(ref openedOnce, "openedOnce");
+            Scribe_Deep.Look(ref theme, "theme");
             Scribe_Collections.Look(ref ModFolder, "ModFolder");
             Scribe_Collections.Look(ref Missions, "Mission");
         }
@@ -134,8 +146,9 @@ namespace MissionsAndObjectives
                                 }
                                 if (objective.def.objectiveType == ObjectiveType.Examine)
                                 {
-                                    foreach (ThingDef def in objective.def.targetThings)
+                                    foreach (ThingValue tv in objective.def.targets)
                                     {
+                                        ThingDef def = tv.def;
                                         if (!list.Contains(def))
                                         {
                                             list.Add(def);

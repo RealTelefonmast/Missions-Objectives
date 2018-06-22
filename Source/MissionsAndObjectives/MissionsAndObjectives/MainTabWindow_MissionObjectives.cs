@@ -12,21 +12,22 @@ namespace MissionsAndObjectives
     [StaticConstructorOnStartup]
     public class MainTabWindow_MissionObjectives : MainTabWindow
     {
-        public WorldComponent_Missions Missions;
+        public WorldComponent_Missions MissionHandler;
 
-        public Vector2 scrollPosLeft = Vector2.zero;
+        private Mission selectedMission;
 
-        public Vector2 scrollPosObj = Vector2.zero;
+        private Objective selectedObjective;
 
-        public Mission selectedMission;
+        private bool tabFlag = true;
 
-        public ObjectiveDef selectedObjective;
+        //Visual components
 
-        private int imgNum = 0;
+        private int selectedImage = 0;
 
-        private Dictionary<ObjectiveDef, Vector2> skillScroll = new Dictionary<ObjectiveDef, Vector2>();
+        private List<Texture2D> cachedImages = new List<Texture2D>();
 
-        public List<Texture2D> imageRow = new List<Texture2D>();
+        private Texture2D backgroundImage;
+
 
         public override Vector2 InitialSize
         {
@@ -39,19 +40,77 @@ namespace MissionsAndObjectives
         public override void PreOpen()
         {
             base.PreOpen();
-            this.Missions = WorldComponent_Missions.MissionHandler;
+            if(MissionHandler == null)
+            {
+                MissionHandler = WorldComponent_Missions.MissionHandler;
+            }
+            foreach (ModContentPack mcp in LoadedModManager.RunningMods.Where(mcp => mcp.AllDefs.Any(def => def is MissionControlDef)))
+            {
+                if (!MissionHandler.ModFolder.Any(mcpw => mcpw.packName == mcp.Identifier))
+                {
+                    ModContentPackWrapper mcpw = new ModContentPackWrapper(mcp.Identifier);
+                    MissionHandler.ModFolder.Add(mcpw);
+                }
+            }
+            if(MissionHandler.theme == null && !MissionHandler.openedOnce)
+            {
+                MissionHandler.theme = MissionHandler.ModFolder.Find(mcpw => mcpw.MCP.AllDefs.Contains(MCD.MainMissionControlDef));
+            }
             if (selectedMission == null)
             {
-                this.selectedMission = Missions.Missions.FirstOrDefault();
+                selectedMission = AvailableMissions.Where(m => !m.def.IsFinished).FirstOrDefault();
             }
+            if(selectedObjective == null)
+            {
+                selectedObjective = selectedMission.Objectives.Where(o => o.Active && !o.Finished).FirstOrDefault();
+            }
+            MissionHandler.openedOnce = true;
         }
 
         public List<Mission> AvailableMissions
         {
             get
             {
-                return Missions.Missions;
+                return MissionHandler.Missions;
             }
+        }
+
+        public void SetTheme(ModContentPack mcp)
+        {
+            if (mcp != null)
+            {
+                MissionHandler.theme = MissionHandler.ModFolder.Find(mcpw => mcpw.packName == mcp.Identifier);
+            }
+            else { MissionHandler.theme = null; }
+        }
+
+        public void SetBackground(ModContentPackWrapper themeHolder)
+        {
+            if (themeHolder != null)
+            {
+                backgroundImage = ContentFinder<Texture2D>.Get(themeHolder.MCD.bannerTex);
+            }
+            else { backgroundImage = null; }
+        }
+
+        public void SetDiaShow(ObjectiveDef objective)
+        {
+            cachedImages.Clear();
+            foreach (string s in objective.images)
+            {
+                Texture2D text = ContentFinder<Texture2D>.Get(s, false);
+                if (text != null)
+                {
+                    cachedImages.Add(text);
+                }
+            }
+        }
+
+        public void DoProgressBar(Rect rect, string label, float pct, Texture2D barMat)
+        {
+            Widgets.FillableBar(rect, pct, barMat, MissionMats.black, true);
+            Text.Anchor = TextAnchor.MiddleCenter;
+            Widgets.Label(rect, label);
         }
 
         public List<Pawn> CapablePawns(ObjectiveDef objective)
@@ -59,194 +118,412 @@ namespace MissionsAndObjectives
             return Find.AnyPlayerHomeMap.mapPawns.AllPawns.Where(p => p.IsColonist && objective.skillRequirements.All((SkillRequirement x) => x.PawnSatisfies(p))).ToList();
         }
 
+        public void ResolveTargetLabel(ObjectiveDef def, out string label)
+        {
+            label = "";
+            if (!def.targets.NullOrEmpty())
+            {
+                label = def.targets.Find(t => t.def.BaseMaxHitPoints == def.targets.Max(t2 => t2.def.BaseMaxHitPoints)).def.LabelCap;
+            }
+            List<PawnKindDef> pawnList = new List<PawnKindDef>();
+            foreach (ThingValue tv in def.targets)
+            {
+                PawnKindDef pDef = DefDatabase<PawnKindDef>.GetNamed(tv.def.defName);
+                pawnList.Add(pDef);
+            }
+            if (pawnList.NullOrEmpty())
+            {
+                label = pawnList.Find(p => p.RaceProps.baseHealthScale == pawnList.Max(p2 => p2.RaceProps.baseHealthScale)).LabelCap;
+            }
+        }
+
         public override void DoWindowContents(Rect inRect)
         {
-            /*
-            if ((this.selectedMission = this.Missions.Missions.FirstOrDefault((Mission x) => x.def.CanStartNow)) == null)
+            SetBackground(MissionHandler.theme);
+            if (backgroundImage != null)
             {
-                Text.Font = GameFont.Tiny;
-                string s = "Thanks Mehni. Look what you made me do.";
-                Vector2 v = Text.CalcSize(s);
-                Rect rect = new Rect(new Vector2(0f, 0f), v);
-                rect.center = inRect.center;
-                Widgets.DrawMenuSection(rect);
-                Widgets.Label(rect, s);
-                return;
+                Widgets.DrawTextureFitted(inRect, backgroundImage, 1f);
             }
-            */
-            Widgets.DrawTextureFitted(inRect, MissionMats.WorkBanner, 1f);
+            //Set default values
+            float generalHeight = 630f;
+            float leftPartWidth = 250f;
+            float yOffSet = (inRect.height - generalHeight) / 2f;
 
-            Text.Font = GameFont.Small;
+            Rect leftPart = new Rect(0f, yOffSet, leftPartWidth, generalHeight).ContractedBy(5f);
+            Rect rightPart = new Rect(leftPartWidth, yOffSet, inRect.width - leftPartWidth, generalHeight).ContractedBy(5f);
+
+            DoLefPart(leftPart);
+            if (selectedMission != null)
+            {
+                DoRightPart(rightPart, selectedMission);
+            }
+            Text.Anchor = 0;
+        }
+
+        public void DoLefPart(Rect rect)
+        {
+            //AddTabs
+            Rect tabRect = new Rect(rect.x + 5f, rect.y - 20f, rect.width - 30f, 20f);
+            string missions = "Missions".Translate();
+            string themes = "Themes".Translate();
+            Vector2 v1 = Text.CalcSize(missions);
+            Vector2 v2 = Text.CalcSize(themes);
+            v1.x += 6f;
+            v2.x += 6f;
+            Rect missionTab = new Rect(new Vector2(tabRect.x, tabRect.y), v1);
+            Rect themeTab = new Rect(new Vector2(missionTab.xMax, missionTab.y), v2);
+
+            Text.Anchor = TextAnchor.MiddleCenter;
+            Widgets.DrawMenuSection(missionTab);
+            Widgets.Label(missionTab, missions);
+            if (Widgets.ButtonInvisible(missionTab))
+            {
+                tabFlag = true;
+            }
+            Widgets.DrawMenuSection(themeTab);
+            Widgets.Label(themeTab, themes);
+            if (Widgets.ButtonInvisible(themeTab))
+            {
+                tabFlag = false;
+            }
             Text.Anchor = TextAnchor.MiddleLeft;
 
-            float missionTabHeight = 35f;
-            float yHeight = 630f;
-            float yOffset = (inRect.height - yHeight) / 2f;
-            Rect refRect = new Rect(0f, yOffset, inRect.width, yHeight);
-            GUI.BeginGroup(refRect);
-            float viewHeight = missionTabHeight * AvailableMissions.Count();
-
-            Rect leftPart = new Rect(0f, 0f, 250f, refRect.height).ContractedBy(5f);
-            Widgets.DrawMenuSection(leftPart);
-            Rect viewRect = new Rect(0f, 0f, leftPart.width, viewHeight);
-            GUI.BeginGroup(leftPart);
-            Widgets.BeginScrollView(new Rect(0f, 0f, leftPart.width, leftPart.height), ref this.scrollPosLeft, viewRect, true);
-            float modGroupYPos = 0;
-            int ii = 0;
-            for (int i = 0; i < LoadedModManager.RunningMods.Count(); i++)
+            Widgets.DrawMenuSection(rect);
+            //Default Values
+            float selectionHeight = 45f;
+            float viewHeight = 0f;
+            float selectionYPos = 0f;
+            
+            if (tabFlag)
             {
-                ModContentPack mcp = LoadedModManager.RunningMods.ElementAt(i);
-                if (mcp.AllDefs.Any(d => d is MissionDef && AvailableMissions.Any(m => m.def == d)))
-                {               
-                    ii++;
-                    Def def = mcp.AllDefs.ToList().Find(d => d is MissionControlDef);
-                    MissionControlDef MCD2 = def != null ? def as MissionControlDef : MCD.MainMissionControlDef;
+                //Do Mission Tab
+                GUI.BeginGroup(rect);
+                viewHeight = selectionHeight * AvailableMissions.Count();
+                Rect viewRect = new Rect(0f, 0f, rect.width, viewHeight);
+                Widgets.BeginScrollView(new Rect(0f, 0f, rect.width, rect.height), ref MissionHandler.missionScrollPos, viewRect, true);
+                int ii = 0;
+                for (int i = 0; i < MissionHandler.ModFolder.Count; i++)
+                {
+                    ModContentPackWrapper mcp = MissionHandler.ModFolder.ElementAt(i);
+                    if (mcp.MCD != MCD.MainMissionControlDef)
+                    {
+                        ii++;
+                        List<Mission> MissionList = this.AvailableMissions.Where(m => mcp.MCP.AllDefs.Contains(m.def) && !m.def.hideOnComplete).ToList();
+                        float groupHeight = MissionList.Count * selectionHeight;
 
-                    Text.Font = GameFont.Tiny;
-                    List<Mission> MissionList = this.AvailableMissions.Where(m => mcp.AllDefs.Contains(m.def) && !m.def.hideOnComplete).ToList();
-                    float groupHeight = MissionList.Count * missionTabHeight;
-                    string identifier = MCD2.label;
-                    Vector2 identifierSize = Text.CalcSize(identifier);
-                    modGroupYPos += identifierSize.y;
-                    if (ii > 1)
-                    {
-                        modGroupYPos += 10f;
+                        //Identifier
+                        string identifier = mcp.MCD.label;
+                        Vector2 identifierSize = Text.CalcSize(identifier);
+                        identifierSize.x += 4f;
+                        selectionYPos += identifierSize.y;
+                        if (ii > 1)
+                        {
+                            selectionYPos += 10f;
+                        }
+                        Rect modGroup = new Rect(0f, selectionYPos, rect.width, groupHeight + 10f).ContractedBy(5f);
+                        Rect identifierRect = new Rect(new Vector2(5f, modGroup.y - identifierSize.y + 1f), identifierSize);
+                        Widgets.DrawMenuSection(new Rect(identifierRect.x, identifierRect.y, identifierRect.width + 15f, identifierRect.height));
+                        Rect appendix = new Rect(identifierRect.xMax, identifierRect.y, 8f, identifierRect.height);
+                        Text.Font = GameFont.Tiny;
+                        Text.Anchor = TextAnchor.MiddleCenter;
+                        if (mcp.toggled)
+                        {
+                            Widgets.Label(appendix, "-");
+                        }
+                        else { Widgets.Label(appendix, "+"); }                                       
+                        Widgets.Label(identifierRect, identifier);
+                        Text.Anchor = 0;
+                        Text.Font = GameFont.Small;
+
+                        if (Widgets.ButtonInvisible(new Rect(identifierRect.x, identifierRect.y, modGroup.width, identifierRect.height)))
+                        {
+                            MissionHandler.ModFolder.Find(m => m == mcp).Toggle();
+                        }
+                        if (mcp.toggled)
+                        {
+                            MissionUtils.DrawMenuSectionColor(modGroup, 1, mcp.MCD.color, mcp.MCD.borderColor);
+                            float missionTabYPos = modGroup.yMin;
+                            foreach (Mission mission in MissionList)
+                            {
+                                Rect rect4 = new Rect(modGroup.x, (float)missionTabYPos, modGroup.width, selectionHeight);
+                                this.DoMissionTab(rect4, mission, mcp.MCD);
+                                missionTabYPos += (int)selectionHeight;
+                            }
+                            selectionYPos += groupHeight;
+                        }
                     }
-                    identifierSize.x += 3f;                   
-                    Rect modGroup = new Rect(0f, modGroupYPos, leftPart.width, groupHeight + 10f).ContractedBy(5f);
-                    Rect identifierRect = new Rect(new Vector2(5f, modGroup.y - identifierSize.y + 1f), identifierSize);
-                    Widgets.DrawMenuSection(identifierRect);
+                }
+                Widgets.EndScrollView();
+                GUI.EndGroup();
+                Widgets.DrawHighlight(missionTab);
+            }
+            else
+            {
+                //Do Theme Tab
+                GUI.BeginGroup(rect);
+                viewHeight = selectionHeight * MissionHandler.ModFolder.Count;
+                Rect viewRect = new Rect(0f, 0f, rect.width, viewHeight);
+                Widgets.BeginScrollView(new Rect(0f, 0f, rect.width, rect.height), ref MissionHandler.missionScrollPos, viewRect, true);
+                for(int i = 0; i < MissionHandler.ModFolder.Count; i++)
+                {
+                    Rect selection = new Rect(0f, selectionYPos, rect.width, selectionHeight).ContractedBy(5f);                    
                     Text.Anchor = TextAnchor.MiddleCenter;
-                    Widgets.Label(identifierRect, identifier);
-                    Text.Anchor = 0;
-                    Text.Font = GameFont.Small;
-                    if (Widgets.ButtonInvisible(new Rect(identifierRect.x, identifierRect.y, modGroup.width, identifierRect.height)))
+                    if (i == 0)
                     {
-                        ModContentPackWrapper mcpw = new ModContentPackWrapper(mcp.Identifier);
-                        if (!Missions.ModFolder.Any(m => m.packName == mcp.Identifier))
+                        Widgets.DrawMenuSection(selection);
+                        Widgets.Label(selection, "None");
+                        if (Mouse.IsOver(selection))
                         {
-                            Missions.ModFolder.Add(mcpw);
-                        }
-                        else
-                        {
-                            Missions.ModFolder.Find(m => m.packName == mcp.Identifier).toggled = !Missions.ModFolder.Find(m => m.packName == mcp.Identifier).toggled;
+                            Widgets.DrawHighlight(selection);
+                            if (Widgets.ButtonInvisible(selection))
+                            {
+                                SetTheme(null);
+                            }
                         }
                     }
-                    if (Missions.ModFolder.Find(mcpw => mcpw.packName == mcp.Identifier)?.toggled ?? true)
-                    {                        
-                        MissionUtils.DrawMenuSectionColor(modGroup, 1, MCD2.color, MCD2.borderColor);
-                        float missionTabYPos = modGroup.yMin;
-                        foreach (Mission mission in MissionList)
-                        {                      
-                            Rect rect4 = new Rect(modGroup.x, (float)missionTabYPos, modGroup.width, missionTabHeight);
-                            this.DoMissionTab(rect4, mission, MCD2);
-                            missionTabYPos += (int)missionTabHeight;
+                    else
+                    {
+                        ModContentPackWrapper mcp = MissionHandler.ModFolder.ElementAt(i - 1);
+                        if (mcp.MCD != MCD.MainMissionControlDef ? mcp.MCD.bannerTex != MCD.MainMissionControlDef.bannerTex : true)
+                        {
+                            //Widgets.DrawTextureFitted(selection.ContractedBy(1f), null, 1f);
+                            Widgets.DrawMenuSection(selection);
+                            Widgets.Label(selection, mcp.MCD.LabelCap);
+                            if (Mouse.IsOver(selection))
+                            {
+                                Widgets.DrawHighlight(selection);
+                                if (Widgets.ButtonInvisible(selection))
+                                {
+                                    SetTheme(mcp.MCP);
+                                }
+                            }
                         }
-                        modGroupYPos += groupHeight;
                     }
+                    Text.Anchor = 0;
+                    selectionYPos += selectionHeight;
+                }
+                Widgets.EndScrollView();
+                GUI.EndGroup();
+                Widgets.DrawHighlight(themeTab);
+            }
+        }
+
+        public void DoRightPart(Rect rect, Mission mission)
+        {
+            Widgets.DrawMenuSection(rect);
+            //Setup Rects
+            Rect innerRect = rect.ContractedBy(10f);
+            Rect descriptionRect = new Rect(innerRect.x, innerRect.y, innerRect.width / 3f, innerRect.height);
+            Rect splitRect = new Rect(descriptionRect.xMax, descriptionRect.y, (innerRect.width / 3f) * 2f, innerRect.height);
+            descriptionRect = descriptionRect.ContractedBy(5f);
+            Rect imageRect = splitRect.TopHalf().ContractedBy(5f);
+            Rect objectiveRect = splitRect.BottomHalf().ContractedBy(5f);
+
+            //Description
+            Widgets.DrawMenuSection(descriptionRect);
+            StringBuilder description = new StringBuilder();
+            description.AppendLine(selectedMission.def.description + "\n");
+            description.AppendLine(selectedObjective?.def.description);
+            Text.Anchor = TextAnchor.UpperLeft;
+            Widgets.Label(descriptionRect.ContractedBy(5f), description.ToString());
+            Text.Anchor = 0;
+
+            //Image View
+            Rect imageSwapL = new Rect(imageRect.x, imageRect.y, 45f, imageRect.height).ContractedBy(5f);
+            Rect imageSwapR = new Rect(imageRect.xMax - 45f, imageRect.y, 45f, imageRect.height).ContractedBy(5f);
+            Widgets.DrawShadowAround(imageRect);
+            Widgets.DrawBoxSolid(imageRect, new Color(0.14f, 0.14f, 0.14f));
+
+            if (selectedObjective != null)
+            {
+                SetDiaShow(selectedObjective.def);
+                if (cachedImages.Count > 0 && selectedImage <= (cachedImages.Count - 1) && cachedImages[selectedImage] != null)
+                {
+                    Widgets.DrawTextureFitted(imageRect, cachedImages[selectedImage], 1f);
+                }
+            }
+            if (Mouse.IsOver(imageSwapL))
+            {
+                if (selectedImage > 0)
+                {
+                    GUI.color = Color.gray;
+                    Widgets.DrawHighlight(imageSwapL);
+                    if (Widgets.ButtonText(imageSwapL, "", false, true, Color.blue, true))
+                    {
+                        selectedImage -= 1;
+                    }
+                }
+            }
+            if (Mouse.IsOver(imageSwapR))
+            {
+                if (selectedImage < cachedImages.Count - 1)
+                {
+                    GUI.color = Color.gray;
+                    Widgets.DrawHighlight(imageSwapR);
+                    if (Widgets.ButtonText(imageSwapR, "", false, true, Color.blue, true))
+                    {
+                        selectedImage += 1;
+                    }
+                }
+            }
+
+            //Objective View
+            Widgets.DrawMenuSection(objectiveRect);
+            float objectiveTabHeight = 60f;
+            float viewHeight = objectiveTabHeight * mission.Objectives.Where(o => o.Active).Count();
+            GUI.BeginGroup(objectiveRect);
+            Rect inRect = new Rect(0f, 0f, objectiveRect.width, objectiveRect.height).ContractedBy(1f);
+            Rect viewRect = new Rect(0f, 0f, inRect.width, viewHeight);
+
+            Widgets.BeginScrollView(inRect, ref MissionHandler.objectiveScrollPos, viewRect, false);
+            int objectiveTabYPos = 0;
+            for (int i = 0; i < mission.Objectives.Count; i++)
+            {
+                Objective obj = mission.Objectives[i];
+                if (obj.Active)
+                {
+                    Rect objectiveSelection = new Rect(0f, (float)objectiveTabYPos, objectiveRect.ContractedBy(1).width, objectiveTabHeight);
+                    DoObjectiveTab(objectiveSelection, obj, i);
+                    objectiveTabYPos += (int)objectiveTabHeight;
                 }
             }
             Widgets.EndScrollView();
             GUI.EndGroup();
-            Rect rightPart = new Rect(250f, 0f, refRect.width - 250, refRect.height).ContractedBy(5f);
-            Widgets.DrawMenuSection(rightPart);
-            rightPart = rightPart.ContractedBy(10f);
-            GUI.BeginGroup(rightPart);
-            if (selectedMission != null)
-            {
-                DoObjectiveWindow(rightPart, selectedMission);
-            }
-            GUI.EndGroup();
-            GUI.EndGroup();
-            Text.Font = GameFont.Small;
-            Text.Anchor = TextAnchor.UpperLeft;
         }
 
-        private void DoMissionTab(Rect rect, Mission mission, MissionControlDef MCD)
-        {
-            Missions.Notify_Seen(mission);
-
-            rect = rect.ContractedBy(3f);
-            if (Mouse.IsOver(rect) || this.selectedMission == mission)
-            {
-                GUI.color = Color.yellow;
-                Widgets.DrawHighlight(rect);
-            }
-            GUI.color = Color.white;
-
-
-            WidgetRow widgetRow = new WidgetRow(rect.x, rect.y + (rect.height - 24f) / 2, UIDirection.RightThenUp, 99999f, 1f);
-
-            if (mission != null && !mission.def.IsFinished)
-            {
-                widgetRow.Icon(ContentFinder<Texture2D>.Get(MCD.boxActive, false), null);
-            }
-            else if (mission.failed)
-            {
-                widgetRow.Icon(ContentFinder<Texture2D>.Get(MCD.boxFailed, false), null);
-            }
-            else if (mission.def.IsFinished)
-            {
-                widgetRow.Icon(ContentFinder<Texture2D>.Get(MCD.boxFinished, false), null);
-            }
-            widgetRow.Gap(5f);
-            widgetRow.Label(mission.def.label, 200f);
-            if (Widgets.ButtonText(rect, "", false, true, Color.blue, true))
-            {
-                SoundDefOf.Click.PlayOneShotOnCamera(null);
-                this.selectedMission = mission;
-                this.selectedObjective = null;
-            }
-        }
-
-        private void DoObjectiveTab(Rect rect, Objective objective, int curObj)
+        private void DoObjectiveTab(Rect rect, Objective objective, int num)
         {
             ObjectiveDef objectiveDef = objective.def;
-
             rect = rect.ContractedBy(1f);
-            if (curObj % 2 == 0)
+            if(num % 2 == 0)
             {
                 Widgets.DrawBoxSolid(rect, new ColorInt(50, 50, 50).ToColor);
             }
-            GUI.BeginGroup(rect);
-            WidgetRow widgetRow = new WidgetRow(5f, 0f, UIDirection.RightThenUp, 99999f, 4f);
-            widgetRow.Label(objectiveDef.label, 200f);
+            //Rect Setup
+            Rect inRect = rect.ContractedBy(5f);          
+            //Label
+            string objectiveLabel = objectiveDef.LabelCap;
+            Vector2 labelVec = Text.CalcSize(objectiveLabel);
+            Rect labelRect = new Rect(new Vector2(inRect.x, inRect.y), labelVec);
+            Widgets.Label(labelRect, objectiveLabel);
 
-            Rect CornerRect = new Rect(rect.xMax - 100f, 0f, 100f, 30f).ContractedBy(5f);
+            //Station - Targets
+            if ((objectiveDef.objectiveType == ObjectiveType.Destroy || objectiveDef.objectiveType == ObjectiveType.Hunt) && !objectiveDef.targets.NullOrEmpty())
+            {
+                ResolveTargetLabel(objectiveDef, out string s);
+                string s2 = "Targets".Translate() + ": " + s;
+                Vector2 v2 = Text.CalcSize(s2);
+                v2.x += 4f;
+                Rect rect2 = new Rect(new Vector2(inRect.x, inRect.yMax - v2.y), v2);
+                MissionUtils.DrawMenuSectionColor(rect2, 1, new ColorInt(35, 35, 35), new ColorInt(85, 85, 85));
+                Widgets.Label(rect2, s2);
 
-            bool flag = objectiveDef.workCost > 0;
-            float pct = 0;
+                if (!objectiveDef.targets.NullOrEmpty())
+                {
+                    StringBuilder sb = new StringBuilder();
+                    foreach (ThingValue tv in objectiveDef.targets)
+                    {
+                        sb.AppendLine("    " + tv.def.LabelCap + ": " + objective.thingTracker.destroyedThings[tv.def] + "/" + tv.value);
+                    }
+                    if (objectiveDef.targets.Count > 1)
+                    {
+                        TooltipHandler.TipRegion(rect2, "AllTargets".Translate(new object[] {
+                    s,
+                    sb
+                }));
+                    }
+                }
+            }
+            if (!objectiveDef.stationDefs.NullOrEmpty())
+            {
+                string s = "StationNeeded".Translate() + ": " + objectiveDef.BestPotentialStationDef.LabelCap;
+                Vector2 v2 = Text.CalcSize(s);
+                v2.x += 4f;
+                Rect rect2 = new Rect(new Vector2(inRect.x, inRect.yMax - v2.y), v2);
+                MissionUtils.DrawMenuSectionColor(rect2, 1, new ColorInt(35, 35, 35), new ColorInt(85, 85, 85));
+                Widgets.Label(rect2, s);
+
+                if (objectiveDef.stationDefs.Count > 1)
+                {
+                    StringBuilder sb = new StringBuilder();
+                    foreach (ThingDef def in objectiveDef.stationDefs)
+                    {
+                        sb.AppendLine("    " + def.LabelCap);
+                    }
+                    TooltipHandler.TipRegion(rect2, "PotentialStations".Translate(new object[] {
+                    objectiveDef.BestPotentialStationDef.LabelCap,
+                    sb
+                }));
+                }
+            }
+
+            //Bars
+            Vector2 size = new Vector2(90f, 20f);
+            Rect BarRect = new Rect(new Vector2(inRect.xMax - size.x, inRect.y), size);
+            Rect BotBarRect = new Rect(new Vector2(inRect.xMax - size.x, inRect.yMax - size.y), size);
+            float pct = 0f;
+            float pctAny = 0f;
             string label = "";
+            string labelAny = "";
 
-
-            if (objectiveDef.workCost > 0)
+            if (objectiveDef.workAmount > 0)
             {
                 pct = objective.ProgressPct;
-                label = Mathf.RoundToInt(objective.GetProgress) + "/" + objectiveDef.workCost;
+                label = Mathf.RoundToInt(objective.GetProgress) + "/" + objectiveDef.workAmount;
 
-                DoProgressBar(CornerRect, label, pct, MissionMats.blue);
-                CornerRect.y = 30f;
+                DoProgressBar(BarRect, label, pct, MissionMats.blue);
+                BarRect = BotBarRect;
             }
             else if (objectiveDef.objectiveType == ObjectiveType.Construct || objectiveDef.objectiveType == ObjectiveType.Craft)
             {
-                pct = (objective.Finished ? 1f : 0f);
-                label = objective.Finished ? "1/1" : "0/1";
-                DoProgressBar(CornerRect, label, pct, MissionMats.orange);
-                CornerRect.y = 30f;
+                if (objectiveDef.anyTarget)
+                {
+                    ThingDef maxDef = objective.thingTracker.madeThings.ToList().Find(mt => mt.Value == objective.thingTracker.madeThings.Values.Max()).Key;
+                    pctAny = (float)objective.thingTracker.madeThings[maxDef] / (float)objectiveDef.targets.Find(tv => tv.def == maxDef).value;
+                    labelAny = (float)objective.thingTracker.madeThings[maxDef] + "/" + (float)objectiveDef.targets.Find(tv => tv.def == maxDef).value;
+                }
+                else
+                {
+                    pct = objective.thingTracker.GetCountMade / (float)objectiveDef.targets.Sum(tv => tv.value);
+                    label = (float)objective.thingTracker.GetCountMade + "/" + (float)objectiveDef.targets.Sum(tv => tv.value);
+                }
+                DoProgressBar(BarRect, objectiveDef.anyTarget ? labelAny : label, objectiveDef.anyTarget ? pctAny : pct, MissionMats.orange);
+
+                StringBuilder sb = new StringBuilder();
+                foreach (ThingValue tv in objectiveDef.targets)
+                {
+                    sb.AppendLine("    " + tv.def.LabelCap + ": " + objective.thingTracker.GetCountMadeFor(tv.def) + "/" + tv.value);
+                }
+                if (objectiveDef.targets.Count > 1)
+                {
+                    string specific = "MakeTargets".Translate(new object[] { sb });
+                    string any = "MakeTargetsAny".Translate(new object[] { sb });
+                    TooltipHandler.TipRegion(BarRect, objectiveDef.anyTarget ? any : specific);
+                }
+                BarRect = BotBarRect;
             }
-            else if(objectiveDef.objectiveType == ObjectiveType.Destroy || objectiveDef.objectiveType == ObjectiveType.Hunt)
+            else if (objectiveDef.objectiveType == ObjectiveType.Destroy || objectiveDef.objectiveType == ObjectiveType.Hunt)
             {
-                pct = ((float)objective.killTracker.GetCountKilled / (float)objectiveDef.killAmount);
-                label = objective.killTracker.GetCountKilled.ToString() + "/" + objectiveDef.killAmount;
-                DoProgressBar(CornerRect, label, pct, MissionMats.green);
-                CornerRect.y = 30f;
+                if (objectiveDef.anyTarget)
+                {
+                    ThingDef maxDef = objective.thingTracker.destroyedThings.ToList().Find(dt => dt.Value == objective.thingTracker.destroyedThings.Values.Max()).Key;
+                    pctAny = (float)objective.thingTracker.destroyedThings[maxDef] / (float)objectiveDef.targets.Find(tv => tv.def == maxDef).value;
+                    labelAny = (float)objective.thingTracker.destroyedThings[maxDef] + "/" + (float)objectiveDef.targets.Find(tv => tv.def == maxDef).value;
+                }
+                else
+                {
+                    pct = ((float)objective.thingTracker.GetCountKilled / (float)objectiveDef.targets.Sum(tv => tv.value));
+                    label = objective.thingTracker.GetCountKilled + "/" + objectiveDef.targets.Sum(tv => tv.value);
+                }
+                DoProgressBar(BarRect, objectiveDef.anyTarget ? labelAny : label, objectiveDef.anyTarget ? pctAny : pct, MissionMats.green);
+                BarRect = BotBarRect;
             }
-            else if(objectiveDef.objectiveType == ObjectiveType.Discover)
+            else if (objectiveDef.objectiveType == ObjectiveType.Discover)
             {
-                pct = ((float)objective.killTracker.GetCountDiscovered / (float)objectiveDef.targetThings.Count);
-                label = objective.killTracker.GetCountDiscovered.ToString() + "/" + objectiveDef.targetThings.Count;
-                DoProgressBar(CornerRect, label, pct, MissionMats.green);
-                CornerRect.y = 30f;
+                pct = ((float)objective.thingTracker.GetCountDiscovered / (float)objectiveDef.targets.Count);
+                label = objective.thingTracker.GetCountDiscovered + "/" + objectiveDef.targets.Count;
+                DoProgressBar(BarRect, label, pct, MissionMats.green);
+                BarRect = BotBarRect;
             }
             if (objectiveDef.TimerTicks > 0)
             {
@@ -269,21 +546,15 @@ namespace MissionsAndObjectives
                     label = "---";
                     pct = 0f;
                 }
-                DoProgressBar(CornerRect, label, pct, MissionMats.grey);
+                DoProgressBar(BarRect, label, pct, MissionMats.grey);
             }
 
+            //SkillReq
             Rect skillRect = new Rect();
             if (objectiveDef.skillRequirements.Count > 0)
             {
-                foreach (ObjectiveDef objectiveDef2 in selectedMission.def.objectives)
-                {
-                    if (!skillScroll.Keys.Contains(objectiveDef2))
-                    {
-                        skillScroll.Add(objectiveDef2, new Vector2());
-                    }
-                }
+                skillRect = new Rect(inRect.xMax - 2 * BarRect.width - 5f, inRect.y, BarRect.width, inRect.height);
                 List<Pawn> pawnList = CapablePawns(objectiveDef);
-                skillRect = new Rect(rect.xMax - (CornerRect.width * 2f) - 10f, 0f, CornerRect.width + 5f, rect.height).ContractedBy(5f);
                 Widgets.DrawMenuSection(skillRect);
 
                 Text.Anchor = TextAnchor.UpperCenter;
@@ -310,78 +581,20 @@ namespace MissionsAndObjectives
                 }));
             }
 
-            Text.Anchor = 0;
-            if ( (objectiveDef.objectiveType == ObjectiveType.Destroy || objectiveDef.objectiveType == ObjectiveType.Hunt) && (!objectiveDef.targetThings.NullOrEmpty() || !objectiveDef.targetPawns.NullOrEmpty()))
-            {
-                ResolveTargetLabel(objectiveDef, out string s);
-                string s2 = "Targets".Translate() + ": " + s;
-                Vector2 v2 = Text.CalcSize(s2);
-                Rect rect2 = new Rect(5f, rect.height / 2, v2.x, v2.y);
-                MissionUtils.DrawMenuSectionColor(rect2.ExpandedBy(1f), 1, new ColorInt(35, 35, 35), new ColorInt(85, 85, 85));
-                Widgets.Label(rect2, s2);
-
-                if (!objectiveDef.targetThings.NullOrEmpty())
-                {
-                    StringBuilder sb = new StringBuilder();
-                    foreach (ThingDef def in objectiveDef.targetThings)
-                    {
-                        sb.AppendLine("    " + def.LabelCap);
-                    }
-                    TooltipHandler.TipRegion(rect2, "AllTargets".Translate(new object[] {
-                    s,
-                    sb
-                }));
-                }
-                if (!objectiveDef.targetPawns.NullOrEmpty())
-                {
-                    StringBuilder sb = new StringBuilder();
-                    foreach (PawnKindDef def in objectiveDef.targetPawns)
-                    {
-                        sb.AppendLine("    " + def.LabelCap);
-                    }
-                    TooltipHandler.TipRegion(rect2, "AllTargets".Translate(new object[] {
-                    s,
-                    sb
-                }));
-                }
-            }
-            if (!objectiveDef.stationDefs.NullOrEmpty())
-            {
-                string s = "StationNeeded".Translate() + ": " + objectiveDef.BestPotentialStationDef.LabelCap;
-                Vector2 v2 = Text.CalcSize(s);
-                Rect rect2 = new Rect(5f, rect.height / 2, v2.x, v2.y);
-                MissionUtils.DrawMenuSectionColor(rect2.ExpandedBy(1f), 1, new ColorInt(35, 35, 35), new ColorInt(85, 85, 85));
-                Widgets.Label(rect2, s);
-
-                if (objectiveDef.stationDefs.Count > 1)
-                {
-                    StringBuilder sb = new StringBuilder();
-                    foreach (ThingDef def in objectiveDef.stationDefs)
-                    {
-                        sb.AppendLine("    " + def.LabelCap);
-                    }
-                    TooltipHandler.TipRegion(rect2, "PotentialStations".Translate(new object[] {
-                    objectiveDef.BestPotentialStationDef.LabelCap,
-                    sb
-                }));
-                }
-            }
-
-            GUI.EndGroup();
+            //End Parts
             if (objective.Failed)
             {
                 GUI.color = Color.red;
                 Widgets.DrawHighlight(rect);
                 GUI.color = Color.white;
             }
-            if (Mouse.IsOver(rect) || this.selectedObjective == objectiveDef)
+            if (Mouse.IsOver(rect) || this.selectedObjective == objective)
             {
                 GUI.color = Color.yellow;
                 Widgets.DrawHighlight(rect);
                 GUI.color = Color.white;
             }
-
-            skillRect.center = new Vector2(skillRect.center.x, skillRect.center.y + (curObj * rect.ExpandedBy(1f).height));
+            skillRect.center = new Vector2(skillRect.center.x, skillRect.center.y + (num * rect.ExpandedBy(1f).height));
             if (Widgets.ButtonText(new Rect(rect.x, rect.y, rect.width, rect.height), "", false, true, Color.blue, true))
             {
                 if (Mouse.IsOver(skillRect))
@@ -394,120 +607,41 @@ namespace MissionsAndObjectives
                     }
                 }
                 SoundDefOf.Click.PlayOneShotOnCamera(null);
-                this.selectedObjective = objectiveDef;
-                imgNum = 0;
+                this.selectedObjective = objective;
+                selectedImage = 0;
             }
         }
 
-        public void ResolveTargetLabel(ObjectiveDef def, out string label)
+        private void DoMissionTab(Rect rect, Mission mission, MissionControlDef MCD)
         {
-            label = "";
-            if (!def.targetThings.NullOrEmpty())
+            MissionHandler.Notify_Seen(mission);
+            rect = rect.ContractedBy(3f);
+            if (Mouse.IsOver(rect) || this.selectedMission == mission)
             {
-                label = def.targetThings.Find(t => t.BaseMaxHitPoints == def.targetThings.Max(t2 => t2.BaseMaxHitPoints)).LabelCap;
+                GUI.color = Color.yellow;
+                Widgets.DrawHighlight(rect);
             }
-            if (!def.targetPawns.NullOrEmpty())
+            GUI.color = Color.white;
+            WidgetRow widgetRow = new WidgetRow(rect.x, rect.y + (rect.height - 24f) / 2, UIDirection.RightThenUp, 99999f, 1f);
+            if (mission != null && !mission.def.IsFinished)
             {
-                label = def.targetPawns.Find(t => t.RaceProps.baseHealthScale == def.targetPawns.Max(t2 => t2.RaceProps.baseHealthScale)).LabelCap;
+                widgetRow.Icon(ContentFinder<Texture2D>.Get(MCD.boxActive, false), null);
             }
-        }
-
-        public void DoProgressBar(Rect rect, string label, float pct, Texture2D barMat)
-        {
-            Widgets.FillableBar(rect, pct, barMat, MissionMats.black, true);
-            Text.Anchor = TextAnchor.MiddleCenter;
-            Widgets.Label(rect, label);
-        }
-
-        public void DoObjectiveWindow(Rect rect, Mission mission)
-        {
-            if (selectedObjective == null)
+            else if (mission.failed)
             {
-                selectedObjective = mission.def.objectives.FirstOrDefault();
+                widgetRow.Icon(ContentFinder<Texture2D>.Get(MCD.boxFailed, false), null);
             }
-            Text.Font = GameFont.Small;
-            Rect descRect = new Rect(0, 0, rect.width / 3, rect.height).ContractedBy(10f);
-            Widgets.DrawMenuSection(descRect);
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine(selectedMission.def.description);
-            sb.AppendLine("");
-            sb.AppendLine(selectedObjective?.description);
-
-            Text.Anchor = TextAnchor.UpperLeft;
-            Widgets.Label(descRect.ContractedBy(5f), sb.ToString());
-            Text.Anchor = 0;
-
-            Rect imageRect = new Rect(rect.width / 3, 0, (rect.width * 2) / 3, rect.height / 2).ContractedBy(10f);
-            Rect imageSwapL = new Rect(imageRect.x, imageRect.y, 45f, imageRect.height).ContractedBy(5f);
-            Rect imageSwapR = new Rect(imageRect.xMax - 45f, imageRect.y, 45f, imageRect.height).ContractedBy(5f);
-
-            Widgets.DrawShadowAround(imageRect);
-            Widgets.DrawBoxSolid(imageRect, new Color(0.14f, 0.14f, 0.14f));
-
-            if (selectedObjective != null)
+            else if (mission.def.IsFinished)
             {
-                SetDiaShow(selectedObjective);
-                if (imageRow.Count > 0 && imgNum <= (imageRow.Count - 1) && imageRow[imgNum] != null)
-                {
-                    Widgets.DrawTextureFitted(imageRect, imageRow[imgNum], 1f);
-                }
+                widgetRow.Icon(ContentFinder<Texture2D>.Get(MCD.boxFinished, false), null);
             }
-            if (Mouse.IsOver(imageSwapL))
+            widgetRow.Gap(5f);
+            widgetRow.Label(mission.def.label, 200f);
+            if (Widgets.ButtonText(rect, "", false, true, Color.blue, true))
             {
-                if (imgNum > 0)
-                {
-                    GUI.color = Color.gray;
-                    Widgets.DrawHighlight(imageSwapL);
-                    if (Widgets.ButtonText(imageSwapL, "", false, true, Color.blue, true))
-                    {
-                        imgNum -= 1;
-                    }
-                }
-            }
-            if (Mouse.IsOver(imageSwapR))
-            {
-                if (imgNum < imageRow.Count - 1)
-                {
-                    GUI.color = Color.gray;
-                    Widgets.DrawHighlight(imageSwapR);
-                    if (Widgets.ButtonText(imageSwapR, "", false, true, Color.blue, true))
-                    {
-                        imgNum += 1;
-                    }
-                }
-            }
-            Rect objectiveMenu = new Rect(rect.width / 3f, rect.height / 2f, rect.width - rect.width / 3, rect.height / 2).ContractedBy(10f);
-            float objectiveTabHeight = 60f;
-            float viewHeight = objectiveTabHeight * mission.Objectives.Where(o => o.Active).Count();
-            Widgets.DrawMenuSection(objectiveMenu);
-            GUI.BeginGroup(objectiveMenu);
-            Rect inRect = new Rect(0f, 0f, objectiveMenu.width, objectiveMenu.height).ContractedBy(1f);
-            Rect viewRect = new Rect(0f, 0f, inRect.width, viewHeight);
-
-            Widgets.BeginScrollView(inRect, ref this.scrollPosObj, viewRect, false);
-            int objectiveTabYPos = 0;
-            for (int i = 0; i < mission.Objectives.Count; i++)
-            {
-                Objective obj = mission.Objectives[i];
-                if (obj.Active)
-                {
-                    Rect rect4 = new Rect(0f, (float)objectiveTabYPos, objectiveMenu.ContractedBy(1).width, objectiveTabHeight);
-                    DoObjectiveTab(rect4, obj, i);
-                    objectiveTabYPos += (int)objectiveTabHeight;
-                }
-            }
-            Widgets.EndScrollView();
-            GUI.EndGroup();
-
-        }
-
-        public void SetDiaShow(ObjectiveDef objective)
-        {
-            imageRow.Clear();
-            foreach (string s in objective.images)
-            {
-                Texture2D text = ContentFinder<Texture2D>.Get(s, true);
-                imageRow.Add(text);
+                SoundDefOf.Click.PlayOneShotOnCamera(null);
+                this.selectedMission = mission;
+                this.selectedObjective = selectedMission.Objectives.FirstOrDefault();
             }
         }
     }

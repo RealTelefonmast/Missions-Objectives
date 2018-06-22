@@ -16,8 +16,6 @@ namespace MissionsAndObjectives
 
     public class MissionIncidentDef : IncidentDef
     {
-        public Type customWorker;
-
         public MissionIncidentType type = MissionIncidentType.MissionStart;
 
         public List<JobDef> anyJobNeeded = new List<JobDef>();
@@ -28,7 +26,21 @@ namespace MissionsAndObjectives
 
         public List<ObjectiveDef> objectiveRequisites = new List<ObjectiveDef>();
 
+        public IncidentProperties customIncident;
+
         public List<MissionDef> missionUnlocks;
+
+        public override IEnumerable<string> ConfigErrors()
+        {
+            if (type == MissionIncidentType.CustomWorker && customIncident == null)
+            {
+                yield return "MissionIncidentDef is missing field 'customIncident'.";
+            }
+            if(type == MissionIncidentType.MissionStart && missionUnlocks.NullOrEmpty())
+            {
+                yield return "MissionIncidentDef unlocks missions but has no MissionDefs in field 'missionUnlocks'.";
+            }
+        }
 
         public WorldComponent_Missions Missions
         {

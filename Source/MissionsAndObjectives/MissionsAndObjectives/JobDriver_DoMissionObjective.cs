@@ -32,13 +32,21 @@ namespace MissionsAndObjectives
             }
         }
 
+        public int Distance
+        {
+            get
+            {
+                return ObjectiveDef.targets.Find(tv => tv.def == Station.def).value;
+            }
+        }
+
         public IntVec3 InteractionCell
         {
             get
             {
-                if (ObjectiveDef.distanceToTarget > 1)
+                if (Distance > 1)
                 {
-                    return Map.AllCells.Where(v => v.DistanceTo(Station.Position) > Objective.def.distanceToTarget && v.DistanceTo(Station.Position) < Objective.def.distanceToTarget + 1 && GenSight.LineOfSight(v, Station.Position, Map)).RandomElement();
+                    return Map.AllCells.Where(v => v.DistanceTo(Station.Position) > Distance && v.DistanceTo(Station.Position) < Distance + 1 && GenSight.LineOfSight(v, Station.Position, Map)).RandomElement();
                 }
                 return Station.InteractionCell;
             }
@@ -105,7 +113,7 @@ namespace MissionsAndObjectives
                 Mission.WorkPerformed(ObjectiveDef, num);
                 actor.GainComfortFromCellIfPossible();
             };
-            doObjective.FailOn(() => Objective.Failed || Objective.Finished || ObjectiveDef.distanceToTarget > 0 ? !GenSight.LineOfSight(Actor.Position, TargetA.Cell, Map) ||  Actor.Position.DistanceTo(TargetA.Cell) > ObjectiveDef.distanceToTarget : false);
+            doObjective.FailOn(() => Objective.Failed || Objective.Finished || Distance > 0 ? !GenSight.LineOfSight(Actor.Position, TargetA.Cell, Map) ||  Actor.Position.DistanceTo(TargetA.Cell) < Distance : false);
             doObjective.WithProgressBar(TargetIndex.A, () => Objective.ProgressPct, false, -0.5f);
             doObjective.defaultCompleteMode = ToilCompleteMode.Delay;
             doObjective.defaultDuration = 4000;

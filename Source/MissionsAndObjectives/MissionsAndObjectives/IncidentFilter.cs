@@ -13,7 +13,7 @@ namespace MissionsAndObjectives
 
         public List<ThingDef> spawnAt = new List<ThingDef>();
 
-        public List<ThingDistancer> distanceFromThings = new List<ThingDistancer>();
+        public List<ThingValue> distanceFromThings = new List<ThingValue>();
 
         public AreaCheck avoidRoofs = AreaCheck.Allow;
 

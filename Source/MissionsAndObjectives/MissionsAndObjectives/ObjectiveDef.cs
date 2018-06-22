@@ -17,15 +17,9 @@ namespace MissionsAndObjectives
 
         public List<ObjectiveDef> objectiveRequisites = new List<ObjectiveDef>();
 
-        public List<ThingDef> targetThings = new List<ThingDef>();
-
-        public List<PawnKindDef> targetPawns = new List<PawnKindDef>();
+        public List<ThingValue> targets = new List<ThingValue>();
 
         public List<ThingDef> stationDefs = new List<ThingDef>();
-
-        public int killAmount = 0;
-
-        public float distanceToTarget = 0;
 
         public List<ObjectiveDef> dependantOn = new List<ObjectiveDef>();
 
@@ -35,9 +29,13 @@ namespace MissionsAndObjectives
 
         public List<IncidentProperties> incidentsOnFail = new List<IncidentProperties>();
 
-        public int workCost = 0;
+        public bool hideOnComplete = false;
 
-        public float timerDays = 0;
+        public bool anyTarget = false;
+
+        public int workAmount = -1;
+
+        public float timerDays = -1;
 
         public List<string> images = new List<string>();
 
@@ -45,31 +43,32 @@ namespace MissionsAndObjectives
         {
             if (objectiveType == ObjectiveType.None)
             {
-                Log.Error("Missing objective type for " + this.defName);
+                Log.Error("is missing an 'objectiveType'.");
             }
-            if (objectiveType == ObjectiveType.Wait && timerDays <= 0f)
+            if (objectiveType == ObjectiveType.Craft || objectiveType == ObjectiveType.Construct || objectiveType == ObjectiveType.Destroy || objectiveType == ObjectiveType.Hunt || objectiveType == ObjectiveType.Discover || objectiveType == ObjectiveType.Examine)
             {
-                yield return "Objective of type 'Wait' is missing a timer value.";
+                if (targets.NullOrEmpty())
+                    yield return "Objective of type '" + objectiveType + "' has an empty 'targets' list.";
             }
-            if (((objectiveType == ObjectiveType.Discover || objectiveType == ObjectiveType.Craft || objectiveType == ObjectiveType.Construct || objectiveType == ObjectiveType.Destroy) && targetThings.NullOrEmpty() || (targetPawns.NullOrEmpty()) && objectiveType == ObjectiveType.Hunt))
+            if(objectiveType == ObjectiveType.Hunt)
             {
-                yield return "Objective is missing a target.";
+                foreach(ThingValue tv in targets)
+                {
+                    if (DefDatabase<PawnKindDef>.GetNamed(tv.def.defName, false) == null)
+                    {
+                        Log.Error("ThingDef named '" + tv.def.defName+ "' of creature '" + tv.def.LabelCap+ "' needs a corresponding PawnKindDef named '" +tv.def.defName+ "'.");
+                    }
+                }
             }
-            if (objectiveType == ObjectiveType.Examine && workCost <= 0)
+            if (objectiveType == ObjectiveType.Research || objectiveType == ObjectiveType.Examine)
             {
-                yield return "Objective of type 'Examine' is missing a work value.";
+                if (workAmount < 0)
+                    yield return "Objective of type '" + objectiveType + "' has 'workAmount' below 0.";
             }
-            if (objectiveType == ObjectiveType.Examine && targetThings.NullOrEmpty() ? targetPawns.NullOrEmpty() : false)
+            if (objectiveType == ObjectiveType.Wait)
             {
-                yield return "Objective of type 'Examine' is missing a target.";
-            }
-            if (objectiveType == ObjectiveType.Research && workCost <= 0)
-            {
-                yield return "Objective of type 'Research' is missing a work value.";
-            }
-            if (objectiveType == ObjectiveType.Research && stationDefs.NullOrEmpty())
-            {
-                yield return "Objective of type 'Research' is missing at least one defined work station.";
+                if (timerDays < 0)
+                    yield return "Obejctive of type 'Wait' has no 'timerDays' set.";
             }
         }
 

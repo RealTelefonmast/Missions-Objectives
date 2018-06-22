@@ -196,7 +196,7 @@ namespace MissionsAndObjectives
             }
             if (!filter.distanceFromThings.NullOrEmpty())
             {
-                AllCells.RemoveAll(v => filter.distanceFromThings.All(dist => map.listerThings.ThingsOfDef(dist.def).Any(t => v.DistanceTo(t.Position) < dist.distance)));
+                AllCells.RemoveAll(v => filter.distanceFromThings.All(dist => map.listerThings.ThingsOfDef(dist.def).Any(t => v.DistanceTo(t.Position) < dist.value)));
             }
 
             if (filter.avoidHome == AreaCheck.Avoid)

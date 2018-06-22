@@ -36,14 +36,15 @@ namespace MissionsAndObjectives
             }
             else
             {
-                IncidentWorker worker = (IncidentWorker)Activator.CreateInstance(Def.customWorker);
-                if (worker.CanFireNow(parms.target))
+                if(Def.customIncident != null)
                 {
-                    return worker.TryExecute(parms);
+                    if (Def.Worker.CanFireNow(parms.target))
+                    {
+                        Def.customIncident.Notify_Execute(parms.target as Map);
+                    }
                 }
             }
             return true;
-
         }
 
         protected override bool CanFireNowSub(IIncidentTarget target)

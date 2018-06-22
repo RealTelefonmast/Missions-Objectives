@@ -12,6 +12,10 @@ namespace MissionsAndObjectives
 
         public string boxFailed = "UI/Icons/Failed";
 
+        public string bannerTex = "UI/MissionBanner";
+
+        public string targetTex = "UI/ObjectiveMarker";
+
         public ColorInt color = new ColorInt(45, 45, 45);
 
         public ColorInt borderColor = new ColorInt(255, 255, 255);

@@ -4,7 +4,7 @@
 	<targetVersion>0.18.0</targetVersion>
     <author>Telefonmast</author>
     <description>
-		This is a core and tool for modders!
-		Check the main page to find out how to create your own Storyline!
+	This framework allows modders to create custom complex storylines purely in xml.
+	Visit the github wiki to find out how to create your own custom mod with this.
 	</description>
 </ModMetaData>

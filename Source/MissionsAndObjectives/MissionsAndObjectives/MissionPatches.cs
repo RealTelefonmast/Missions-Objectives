@@ -11,6 +11,7 @@ using RimWorld.Planet;
 using RimWorld.BaseGen;
 using Verse;
 using Verse.AI.Group;
+using Verse.AI;
 using UnityEngine;
 
 namespace MissionsAndObjectives
@@ -73,9 +74,11 @@ namespace MissionsAndObjectives
             private static Graphic Graphic;
             public static void Postfix(Thing __instance, SectionLayer layer)
             {
-                Graphic = GraphicDatabase.Get(typeof(Graphic_Single), "UI/ObjectiveMarker", ShaderDatabase.MetaOverlay, __instance.def.size.ToVector2(), Color.white, Color.white);
+                string path = Missions.theme != null ? Missions.theme.MCD.targetTex : "UI/ObjectiveMarker";
 
-                if (Missions.Missions.Any(m => m.Objectives.Any(o => !o.Finished && o.Active && o.def.targetThings.Contains(__instance.def))))
+                Graphic = GraphicDatabase.Get(typeof(Graphic_Single), path, ShaderDatabase.MetaOverlay, __instance.def.size.ToVector2(), Color.white, Color.white);
+
+                if (Missions.Missions.Any(m => m.Objectives.Any(o => !o.Finished && o.Active && o.def.targets.Any(tv => tv.def == __instance.def))))
                 {
                     Material Mat = Graphic.MatAt(Rot4.North, null);
                     Printer_Mesh.PrintMesh(layer, __instance.DrawPos, Graphic.MeshAt(Rot4.North), Mat);
@@ -93,9 +96,10 @@ namespace MissionsAndObjectives
             {
                 if (__instance != null)
                 {
-                    if (Missions.Missions.Any(m => m.Objectives.Any(o => !o.Finished && o.Active && o.def.targetPawns.Contains(__instance.kindDef))))
+                    if (Missions.Missions.Any(m => m.Objectives.Any(o => !o.Finished && o.Active && o.def.targets.Any(tv => tv.def == __instance.def))))
                     {
-                        Graphic = GraphicDatabase.Get(typeof(Graphic_Single), "UI/ObjectiveMarker", ShaderDatabase.MetaOverlay, __instance.Drawer.renderer.graphics.nakedGraphic.drawSize, Color.white, Color.white);
+                        string path = Missions.theme != null ? Missions.theme.MCD.targetTex : "UI/ObjectiveMarker";
+                        Graphic = GraphicDatabase.Get(typeof(Graphic_Single), path, ShaderDatabase.MetaOverlay, __instance.Drawer.renderer.graphics.nakedGraphic.drawSize, Color.white, Color.white);
                         Material Mat = Graphic.MatAt(Rot4.North, null);
                         Graphics.DrawMesh(Graphic.MeshAt(Rot4.North), __instance.DrawPos + Altitudes.AltIncVect, Quaternion.identity, Mat, 0);
                     }
@@ -111,6 +115,32 @@ namespace MissionsAndObjectives
             }
         }
 
+        
+        [HarmonyPatch(typeof(Frame))]
+        [HarmonyPatch("CompleteConstruction")]
+        static class BuildPatch
+        {
+            public static void Postfix(Frame __instance)
+            {
+                Missions.Missions.ForEach(m => m.Objectives.Where(o => o.Active && !o.Finished).ToList().ForEach(o => o.thingTracker.Make(__instance.def.entityDefToBuild as ThingDef)));
+            }
+        }
+
+        [HarmonyPatch(typeof(GenRecipe))]
+        [HarmonyPatch("MakeRecipeProducts")]
+        static class CraftPatch
+        {
+            public static void Postfix(RecipeDef recipeDef)
+            {
+                foreach (ThingCountClass count in recipeDef.products)
+                {
+                    ThingDef def = count.thingDef;
+                    Missions.Missions.ForEach(m => m.Objectives.Where(o => o.Active && !o.Finished).ToList().ForEach(o => o.thingTracker.Make(def)));
+                }
+            }
+        }
+        
+
         [HarmonyPatch(typeof(Thing))]
         [HarmonyPatch("SpawnSetup")]
         static class SpawnThingPatch
@@ -119,7 +149,7 @@ namespace MissionsAndObjectives
             {
                 if (__instance.Map == Find.AnyPlayerHomeMap)
                 {
-                    Missions.Missions.ForEach(m => m.Objectives.Where(o => o.Active && !o.Finished).ToList().ForEach(o => o.killTracker.Discover(__instance.def)));
+                    Missions.Missions.ForEach(m => m.Objectives.Where(o => o.Active && !o.Finished).ToList().ForEach(o => o.thingTracker.Discover(__instance.def)));
                 }
             }
         }
@@ -139,7 +169,7 @@ namespace MissionsAndObjectives
             {
                 if (dinfo.Instigator != null && (dinfo.Instigator as Pawn).IsColonist)
                 {
-                    Missions.Missions.ForEach(m => m.Objectives.Where(o => o.Active && !o.Finished).ToList().ForEach(o => o.killTracker.Destroy(temp)));
+                    Missions.Missions.ForEach(m => m.Objectives.Where(o => o.Active && !o.Finished).ToList().ForEach(o => o.thingTracker.Destroy(temp)));
                 }
             }
         }
@@ -148,18 +178,18 @@ namespace MissionsAndObjectives
         [HarmonyPatch("Kill")]
         static class KillPawnPatch
         {
-            private static PawnKindDef temp;
+            private static ThingDef temp;
             public static bool Prefix(Pawn __instance)
             {
-                temp = __instance.kindDef;
+                temp = __instance.def;
                 return true;
             }
 
             public static void Postfix(Pawn __instance, DamageInfo dinfo)
             {
-                if (dinfo.Instigator != null && (dinfo.Instigator as Pawn).IsColonist)
+                if (dinfo.Instigator != null && dinfo.Instigator is Pawn && (dinfo.Instigator as Pawn).IsColonist)
                 {
-                    Missions.Missions.ForEach(m => m.Objectives.Where(o => o.Active && !o.Finished).ToList().ForEach(o => o.killTracker.Destroy(null, temp)));
+                    Missions.Missions.ForEach(m => m.Objectives.Where(o => o.Active && !o.Finished).ToList().ForEach(o => o.thingTracker.Destroy(temp)));
                 }
             }
         }

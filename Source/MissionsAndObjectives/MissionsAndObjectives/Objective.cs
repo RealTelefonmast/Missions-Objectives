@@ -23,7 +23,7 @@ namespace MissionsAndObjectives
 
         private int timer;
 
-        public DiscoverAndKillTracker killTracker;
+        public ThingTracker thingTracker;
 
         public Objective()
         {
@@ -39,9 +39,9 @@ namespace MissionsAndObjectives
             this.def = def;
             this.parent = parent;
             this.timer = def.TimerTicks;
-            if(killTracker == null)
+            if(thingTracker == null)
             {
-                killTracker = new DiscoverAndKillTracker(def.targetThings, def.targetPawns, def.killAmount);
+                thingTracker = new ThingTracker(def.targets, def.anyTarget);
             }
         }
 
@@ -52,15 +52,13 @@ namespace MissionsAndObjectives
             Scribe_Values.Look(ref failedOnce, "failedOnce");
             Scribe_Values.Look(ref progress, "progress");
             Scribe_Values.Look(ref timer, "timer");
-            Scribe_Deep.Look(ref killTracker, "killTracker", new object[] {
-                def.targetThings,
-                def.targetPawns,
-                def.killAmount,
+            Scribe_Deep.Look(ref thingTracker, "killTracker", new object[] {
+                def.targets,
+                def.anyTarget
             });
         }
 
         // bool Getters
-
         public bool CanDoObjective(Pawn pawn, Thing thing)
         {
             if (!Active || def.IsManualJob || Failed || Finished || pawn == null)
@@ -75,11 +73,11 @@ namespace MissionsAndObjectives
             {
                 return false;
             }
-            if (!def.targetThings.NullOrEmpty() && thing != null && !def.targetThings.Contains(thing.def))
+            if (!def.targets.NullOrEmpty() && thing != null && !def.targets.Any(tv => tv.def == thing.def))
             {
                 return false;
             }
-            if (!def.skillRequirements.All(sr => sr.PawnSatisfies(pawn)))
+            if (!def.skillRequirements.NullOrEmpty() && !def.skillRequirements.All(sr => sr.PawnSatisfies(pawn)))
             {
                 return false;
             }
@@ -96,7 +94,7 @@ namespace MissionsAndObjectives
             {
                 if (GetTimer == def.TimerTicks)
                 {
-                    return RequisitesComplete;
+                    return RequisitesComplete && !def.hideOnComplete;
                 }
                 return true;
             }
@@ -126,14 +124,6 @@ namespace MissionsAndObjectives
             }
         }
 
-        public bool TargetThingsAvailable
-        {
-            get
-            {
-                return def.targetThings.All(def => !Find.AnyPlayerHomeMap.listerThings.ThingsOfDef((def as ThingDef)).NullOrEmpty());
-            }
-        }
-
         public bool Finished
         {
             get
@@ -142,27 +132,24 @@ namespace MissionsAndObjectives
                 {
                     return false;
                 }
-                if(def.killAmount > 0)
+                if (def.workAmount > 0)
                 {
-                    if(killTracker.GetCountKilled >= def.killAmount)
+                    if (GetProgress >= def.workAmount)
                     {
                         return true;
                     }
                 }
-                if (def.workCost > 0)
+                if(def.objectiveType == ObjectiveType.Destroy || def.objectiveType == ObjectiveType.Hunt)
                 {
-                    if (GetProgress >= def.workCost)
-                    {
-                        return true;
-                    }
+                    return thingTracker.AllKilled;
                 }
                 if (def.objectiveType == ObjectiveType.Discover)
                 {
-                    return killTracker.AllDiscovered;
+                    return thingTracker.AllDiscovered;
                 }
                 if (def.objectiveType == ObjectiveType.Construct || def.objectiveType == ObjectiveType.Craft)
                 {
-                    if (TargetThingsAvailable)
+                    if (thingTracker.AllMade)
                     {
                         return true;
                     };
@@ -219,7 +206,7 @@ namespace MissionsAndObjectives
         {
             get
             {
-                return GetProgress / def.workCost;
+                return GetProgress / def.workAmount;
             }
         }
 
@@ -232,7 +219,7 @@ namespace MissionsAndObjectives
 
         public void DoWork(float workAmount)
         {
-            progress = Mathf.Min(GetProgress + workAmount, def.workCost);
+            progress = Mathf.Min(GetProgress + workAmount, def.workAmount);
         }
 
         public void Notify_Finish()
