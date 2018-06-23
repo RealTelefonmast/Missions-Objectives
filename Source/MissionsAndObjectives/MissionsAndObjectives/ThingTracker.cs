@@ -11,32 +11,62 @@ namespace MissionsAndObjectives
     {
         private bool any = false;
 
+        private ObjectiveType type = ObjectiveType.None;
+
         private List<ThingValue> targetsToCheck = new List<ThingValue>();
 
-        public Dictionary<ThingDef, bool> discoveredThings = new Dictionary<ThingDef, bool>();
+        public Dictionary<ThingDef, int> discoveredThings = new Dictionary<ThingDef, int>();
 
         public Dictionary<ThingDef, int> madeThings = new Dictionary<ThingDef, int>();
 
         public Dictionary<ThingDef, int> destroyedThings = new Dictionary<ThingDef, int>();
 
+        public Dictionary<PawnKindDef, int> killedThings = new Dictionary<PawnKindDef, int>();
+
         public ThingTracker()
         {
         }
 
-        public ThingTracker(List<ThingValue> defs, bool flag)
+        public ThingTracker(List<ThingValue> defs, ObjectiveType type, bool flag)
         {
             targetsToCheck = defs;
-            foreach(ThingValue tv in targetsToCheck)
+            this.type = type;
+            any = flag;
+            foreach (ThingValue tv in targetsToCheck)
             {
-                ThingDef def = tv.def;
-                if (!this.discoveredThings.Keys.Contains(def))
+                ThingDef def = tv.ThingDef;
+                if (def != null)
                 {
-                    this.madeThings.Add(def, 0);
-                    this.destroyedThings.Add(def, 0);
-                    this.discoveredThings.Add(def, false);
+                    if (type == ObjectiveType.Construct || type == ObjectiveType.Craft)
+                    {
+                        if (!madeThings.ContainsKey(def))
+                        {
+                            this.madeThings.Add(def, 0);
+                        }
+                    }
+                    if (type == ObjectiveType.Discover)
+                    {
+                        if (!discoveredThings.ContainsKey(def))
+                        {
+                            this.discoveredThings.Add(def, 0);
+                        }
+                    }
+                    if (type == ObjectiveType.Destroy)
+                    {
+                        if (!destroyedThings.ContainsKey(def))
+                        {
+                            this.destroyedThings.Add(def, 0);
+                        }
+                    }
+                    if (type == ObjectiveType.Hunt)
+                    {
+                        if (!killedThings.ContainsKey(tv.PawnKindDef))
+                        {
+                            this.killedThings.Add(tv.PawnKindDef, 0);
+                        }                     
+                    }
                 }
             }
-            any = flag;
         }
 
         public void ExposeData()
@@ -45,7 +75,10 @@ namespace MissionsAndObjectives
             Scribe_Collections.Look(ref this.madeThings, "madeThings");
             Scribe_Collections.Look(ref this.discoveredThings, "discoveredThings");
             Scribe_Collections.Look(ref this.destroyedThings, "destroyedThings");
+            Scribe_Collections.Look(ref this.killedThings, "killedThings");
         }
+
+        //General
 
         public int GetTargetCount
         {
@@ -55,31 +88,87 @@ namespace MissionsAndObjectives
             }
         }
 
+        //Discovered
+
+        public int GetCountDiscovered
+        {
+            get
+            {
+                return discoveredThings.Values.Sum();
+            }
+        }
+
         public bool AllDiscovered
         {
             get
             {
                 if (any)
                 {
-                    return this.discoveredThings.Values.Any(b => b);
+                    return targetsToCheck.Any(tv => discoveredThings[tv.ThingDef] >= tv.value);
                 }
-                return this.discoveredThings.Values.All(b => b);
+                return GetCountDiscovered >= targetsToCheck.Sum(tv => tv.value);
             }
         }
 
-        public bool AllKilled
+        // Killed-Desroyed Sum
+
+        public bool AllDestroyedKilled
         {
             get
             {
-                if(any)
-                {
-                    return targetsToCheck.Any(tv => destroyedThings[tv.def] >= tv.value);
-                }
-                return GetCountKilled >= targetsToCheck.Sum(tv => tv.value);
+                return AllPawnsKilled && AllThingsDestroyed;
             }
         }
 
-        public int GetCountKilled
+        public int GetSumKilledDestroyed
+        {
+            get
+            {
+                return GetCountKilledPawns + GetCountDestroyedThings;
+            }
+        }
+
+        // Killed
+
+        public bool AllPawnsKilled
+        {
+            get
+            {
+                if (any)
+                {
+                    return targetsToCheck.Any(tv => killedThings.ContainsKey(tv.PawnKindDef) && killedThings[tv.PawnKindDef] >= tv.value);
+                }
+                return GetCountKilledPawns >= targetsToCheck.Sum(tv => tv.value);
+            }
+        }
+
+        public int GetCountKilledPawns
+        {
+            get
+            {
+                if (!killedThings.ToList().NullOrEmpty())
+                {
+                    return killedThings.Values.Sum();
+                }
+                return 0;
+            }
+        }
+
+        // Destroyed
+
+        public bool AllThingsDestroyed
+        {
+            get
+            {
+                if (any)
+                {
+                    return targetsToCheck.Any(tv => destroyedThings.ContainsKey(tv.ThingDef) && destroyedThings[tv.ThingDef] >= tv.value);
+                }
+                return GetCountDestroyedThings >= targetsToCheck.Sum(tv => tv.value);
+            }
+        }
+
+        public int GetCountDestroyedThings
         {
             get
             {
@@ -91,13 +180,7 @@ namespace MissionsAndObjectives
             }
         }
 
-        public int GetCountDiscovered
-        {
-            get
-            {
-                return this.discoveredThings.Values.Count(v => v);
-            }
-        }
+        // Made
 
         public bool AllMade
         {
@@ -105,7 +188,7 @@ namespace MissionsAndObjectives
             {
                 if (any)
                 {
-                    return targetsToCheck.Any(tv => madeThings[tv.def] >= tv.value);
+                    return targetsToCheck.Any(tv => madeThings[tv.ThingDef] >= tv.value);
                 }
                 return GetCountMade >= targetsToCheck.Sum(tv => tv.value);
             }
@@ -124,9 +207,19 @@ namespace MissionsAndObjectives
             return madeThings[def];
         }
 
+        // Voids
+
+        public void Kill(PawnKindDef def)
+        {
+            if (killedThings.ContainsKey(def))
+            {
+                killedThings[def] += 1;
+            }
+        }
+
         public void Destroy(ThingDef def)
         {
-            if (destroyedThings.Keys.Contains(def))
+            if (destroyedThings.ContainsKey(def))
             {
                 destroyedThings[def] += 1;
             }
@@ -134,15 +227,15 @@ namespace MissionsAndObjectives
 
         public void Discover(ThingDef def)
         {
-            if (this.discoveredThings.Keys.Contains(def))
+            if (discoveredThings.ContainsKey(def))
             {
-                this.discoveredThings[def] = true;
+                discoveredThings[def] += 1;
             }
         }
 
         public void Make(ThingDef def)
         {
-            if (madeThings.Keys.Contains(def))
+            if (madeThings.ContainsKey(def))
             {
                 madeThings[def] += 1;
             }

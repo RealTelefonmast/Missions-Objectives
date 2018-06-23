@@ -41,7 +41,7 @@ namespace MissionsAndObjectives
             this.timer = def.TimerTicks;
             if(thingTracker == null)
             {
-                thingTracker = new ThingTracker(def.targets, def.anyTarget);
+                thingTracker = new ThingTracker(def.targets, def.objectiveType, def.anyTarget);
             }
         }
 
@@ -54,6 +54,7 @@ namespace MissionsAndObjectives
             Scribe_Values.Look(ref timer, "timer");
             Scribe_Deep.Look(ref thingTracker, "killTracker", new object[] {
                 def.targets,
+                def.objectiveType,
                 def.anyTarget
             });
         }
@@ -73,7 +74,7 @@ namespace MissionsAndObjectives
             {
                 return false;
             }
-            if (!def.targets.NullOrEmpty() && thing != null && !def.targets.Any(tv => tv.def == thing.def))
+            if (!def.targets.NullOrEmpty() && thing != null && !def.targets.Any(tv => tv.ThingDef == thing.def))
             {
                 return false;
             }
@@ -141,7 +142,7 @@ namespace MissionsAndObjectives
                 }
                 if(def.objectiveType == ObjectiveType.Destroy || def.objectiveType == ObjectiveType.Hunt)
                 {
-                    return thingTracker.AllKilled;
+                    return thingTracker.AllDestroyedKilled;
                 }
                 if (def.objectiveType == ObjectiveType.Discover)
                 {
@@ -189,6 +190,31 @@ namespace MissionsAndObjectives
             get
             {
                 return timer;
+            }
+        }
+
+        public string GetTimerText
+        {
+            get
+            {
+                string label = "";
+                if (timer > GenDate.TicksPerYear)
+                {
+                    label = Math.Round((decimal)timer / GenDate.TicksPerYear, 1) + "y";
+                }
+                else if (timer > GenDate.TicksPerDay)
+                {
+                    label = Math.Round((decimal)timer / GenDate.TicksPerDay, 1) + "d";
+                }
+                else if (timer < GenDate.TicksPerDay)
+                {
+                    label = Math.Round((decimal)timer / GenDate.TicksPerHour, 1) + "h";
+                }
+                if (this.Finished)
+                {
+                    label = "---";
+                }
+                return label;
             }
         }
 

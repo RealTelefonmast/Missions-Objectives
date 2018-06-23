@@ -36,7 +36,7 @@ namespace MissionsAndObjectives
         {
             get
             {
-                return ObjectiveDef.targets.Find(tv => tv.def == Station.def).value;
+                return ObjectiveDef.targets.Find(tv => tv.ThingDef == Station.def).value;
             }
         }
 
@@ -78,12 +78,28 @@ namespace MissionsAndObjectives
 
         public override string GetReport()
         {
-            return ObjectiveDef.LabelCap;
+            return "objectiveJob".Translate() + ": " + ObjectiveDef.LabelCap;
         }
 
         public override bool TryMakePreToilReservations()
         {
             return this.pawn.Reserve(this.job.targetA, this.job);
+        }
+
+        public bool Fail
+        {
+            get
+            {
+                if(Objective.Failed || Objective.Finished)
+                {
+                    return true;
+                }
+                if(Distance > 0 ? (!GenSight.LineOfSight(Actor.Position, TargetA.Cell, Map) || Actor.Position.DistanceTo(TargetA.Cell) > (Distance * 2)) : false)
+                {
+                    return true;
+                }
+                return false;
+            }
         }
 
         protected override IEnumerable<Toil> MakeNewToils()
@@ -96,7 +112,6 @@ namespace MissionsAndObjectives
             doObjective.tickAction = delegate
             {
                 Pawn actor = doObjective.actor;
-
                 float num = 1.1f;
                 if (ObjectiveDef.EffectiveStat != null && actor.SpecialDisplayStats.Any((StatDrawEntry x) => x.stat == ObjectiveDef.EffectiveStat))
                 {
@@ -113,7 +128,7 @@ namespace MissionsAndObjectives
                 Mission.WorkPerformed(ObjectiveDef, num);
                 actor.GainComfortFromCellIfPossible();
             };
-            doObjective.FailOn(() => Objective.Failed || Objective.Finished || Distance > 0 ? !GenSight.LineOfSight(Actor.Position, TargetA.Cell, Map) ||  Actor.Position.DistanceTo(TargetA.Cell) < Distance : false);
+            doObjective.FailOn(() => Fail);
             doObjective.WithProgressBar(TargetIndex.A, () => Objective.ProgressPct, false, -0.5f);
             doObjective.defaultCompleteMode = ToilCompleteMode.Delay;
             doObjective.defaultDuration = 4000;

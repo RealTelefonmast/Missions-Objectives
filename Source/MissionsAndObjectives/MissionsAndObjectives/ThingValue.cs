@@ -4,22 +4,24 @@ using System.Linq;
 using System.Text;
 using RimWorld;
 using Verse;
+using UnityEngine;
 using System.Xml;
+using System.Collections;
 
 namespace MissionsAndObjectives
 {
     public sealed class ThingValue
     {
-        public ThingDef def;
-        public int value = 1;
+        private string defName;
+        public int value = 1;     
 
         public ThingValue()
         {
         }
 
-        public ThingValue(ThingDef def, int value)
+        public ThingValue(string defName, int value)
         {
-            this.def = def;
+            this.defName = defName;
             this.value = value;
         }
 
@@ -27,12 +29,33 @@ namespace MissionsAndObjectives
         {
             get
             {
-                return this.value + " Value For " + ((this.def == null) ? "null" : this.def.label);
+                return this.value + " Value For " + ((this.defName == null) ? "null" : this.defName);
+            }
+        }
+
+        public ThingDef ThingDef
+        {
+            get
+            {
+                ThingDef def = DefDatabase<ThingDef>.GetNamed(defName, false);
+                if(def == null)
+                {
+                    def = DefDatabase<ThingDef>.GetNamed(PawnKindDef.race.defName, false);
+                }
+                return def;
+            }
+        }
+
+        public PawnKindDef PawnKindDef
+        {
+            get
+            {
+                return DefDatabase<PawnKindDef>.GetNamed(defName, false);
             }
         }
 
         public void LoadDataFromXmlCustom(XmlNode xmlRoot)
-        {        
+        {
             string s = xmlRoot.FirstChild.Value;
             if (s.Contains(","))
             {
@@ -40,21 +63,21 @@ namespace MissionsAndObjectives
                     {
                     ','
                     });
-                DirectXmlCrossRefLoader.RegisterObjectWantsCrossRef(this, "def", array[0]);
+                this.defName = array[0];
                 this.value = (int)ParseHelper.FromString(array[1], typeof(int));
                 return;
             }
-            DirectXmlCrossRefLoader.RegisterObjectWantsCrossRef(this, "def", s);
+            this.defName = s;
         }
 
         public override string ToString()
         {
-            return this.def.ToString() + "," + this.value.ToString();
+            return this.defName + "," + this.value.ToString();
         }
 
         public override int GetHashCode()
         {
-            return (int)this.def.shortHash + this.value << 16;
+            return (int)this.defName.GetHashCode() + this.value << 16;
         }
     }
 }

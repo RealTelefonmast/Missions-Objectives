@@ -3,16 +3,17 @@
 
   <!-- Missions -->
   <NewMission>New mission available!</NewMission>
-  <NewMissionDesc>You have a new mission available, check it out in the missions tab!</NewMissionDesc>
+  <NewMissionDesc>You have a new mission available, check it out in the Missions tab!</NewMissionDesc>
   <StationNeeded>Required</StationNeeded>
   <Targets>Target</Targets>
-  <AllTargets>{0} is the strongest out of the targets, it is recommended to take them out the first, however there are also other options:\n\n{1}</AllTargets>
+  <AllTargets>{0} is the strongest out of the targets, it is recommended to take them out the first. However there are also other options:\n\n{1}</AllTargets>
   
-  <MissionTimer>Timer active!</MissionTimer>
-  <MissionTimerDesc>A timer is active! Don't forget to finish the objective on time.</MissionTimerDesc>
+  <MissionTimer>Active timer!</MissionTimer>
+  <objectiveJob>Working on</objectiveJob>
+  <MissionTimerDesc>One or more timers are active! Don't forget to finish the objectives on time:\n\n{0}</MissionTimerDesc>
   <ObjectiveSkills>This objective requires pawns with certain skills:\n\n{0}\n{1}</ObjectiveSkills>
   <ObjectivePawns>The following pawns are capable of the job:\n\n{0}</ObjectivePawns>
-  <PotentialStations>{0} is the best option for this job, however, the following objects can be used as well:\n\n{1}</PotentialStations>
+  <PotentialStations>{0} is the best option for this job, however, the following sations can be used as well:\n\n{1}</PotentialStations>
   <MakeTargets>This objective requires you to construct multiple targets:\n\n{0}</MakeTargets>
   <MakeTargetsAny>You need to construct any of the following targets:\n\n{0}</MakeTargetsAny>
   <FinishedObjective>Objective Finished</FinishedObjective>

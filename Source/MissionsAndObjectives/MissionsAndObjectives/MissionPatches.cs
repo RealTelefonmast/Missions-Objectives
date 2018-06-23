@@ -78,7 +78,7 @@ namespace MissionsAndObjectives
 
                 Graphic = GraphicDatabase.Get(typeof(Graphic_Single), path, ShaderDatabase.MetaOverlay, __instance.def.size.ToVector2(), Color.white, Color.white);
 
-                if (Missions.Missions.Any(m => m.Objectives.Any(o => !o.Finished && o.Active && o.def.targets.Any(tv => tv.def == __instance.def))))
+                if (Missions.Missions.Any(m => m.Objectives.Any(o => !o.Finished && o.Active && o.def.targets.Any(tv => tv.ThingDef == __instance.def))))
                 {
                     Material Mat = Graphic.MatAt(Rot4.North, null);
                     Printer_Mesh.PrintMesh(layer, __instance.DrawPos, Graphic.MeshAt(Rot4.North), Mat);
@@ -96,7 +96,7 @@ namespace MissionsAndObjectives
             {
                 if (__instance != null)
                 {
-                    if (Missions.Missions.Any(m => m.Objectives.Any(o => !o.Finished && o.Active && o.def.targets.Any(tv => tv.def == __instance.def))))
+                    if (Missions.Missions.Any(m => m.Objectives.Any(o => !o.Finished && o.Active && o.def.targets.Any(tv => tv.ThingDef == __instance.def))))
                     {
                         string path = Missions.theme != null ? Missions.theme.MCD.targetTex : "UI/ObjectiveMarker";
                         Graphic = GraphicDatabase.Get(typeof(Graphic_Single), path, ShaderDatabase.MetaOverlay, __instance.Drawer.renderer.graphics.nakedGraphic.drawSize, Color.white, Color.white);
@@ -145,9 +145,9 @@ namespace MissionsAndObjectives
         [HarmonyPatch("SpawnSetup")]
         static class SpawnThingPatch
         {
-            public static void Postfix(Thing __instance)
+            public static void Postfix(Thing __instance, bool respawningAfterLoad)
             {
-                if (__instance.Map == Find.AnyPlayerHomeMap)
+                if (__instance.Map == Find.AnyPlayerHomeMap && !respawningAfterLoad)
                 {
                     Missions.Missions.ForEach(m => m.Objectives.Where(o => o.Active && !o.Finished).ToList().ForEach(o => o.thingTracker.Discover(__instance.def)));
                 }
@@ -167,9 +167,12 @@ namespace MissionsAndObjectives
 
             public static void Postfix(Thing __instance, DamageInfo dinfo)
             {
-                if (dinfo.Instigator != null && (dinfo.Instigator as Pawn).IsColonist)
+                if (dinfo.Instigator != null && dinfo.Instigator is Pawn)
                 {
-                    Missions.Missions.ForEach(m => m.Objectives.Where(o => o.Active && !o.Finished).ToList().ForEach(o => o.thingTracker.Destroy(temp)));
+                    if ((dinfo.Instigator as Pawn).IsColonist)
+                    {
+                        Missions.Missions.ForEach(m => m.Objectives.Where(o => o.Active && !o.Finished).ToList().ForEach(o => o.thingTracker.Destroy(temp)));
+                    }
                 }
             }
         }
@@ -178,18 +181,21 @@ namespace MissionsAndObjectives
         [HarmonyPatch("Kill")]
         static class KillPawnPatch
         {
-            private static ThingDef temp;
+            private static PawnKindDef temp;
             public static bool Prefix(Pawn __instance)
             {
-                temp = __instance.def;
+                temp = __instance.kindDef;
                 return true;
             }
 
             public static void Postfix(Pawn __instance, DamageInfo dinfo)
             {
-                if (dinfo.Instigator != null && dinfo.Instigator is Pawn && (dinfo.Instigator as Pawn).IsColonist)
+                if (dinfo.Instigator != null && dinfo.Instigator is Pawn)
                 {
-                    Missions.Missions.ForEach(m => m.Objectives.Where(o => o.Active && !o.Finished).ToList().ForEach(o => o.thingTracker.Destroy(temp)));
+                    if ((dinfo.Instigator as Pawn).IsColonist)
+                    {
+                        Missions.Missions.ForEach(m => m.Objectives.Where(o => o.Active && !o.Finished).ToList().ForEach(o => o.thingTracker.Kill(temp)));
+                    }
                 }
             }
         }

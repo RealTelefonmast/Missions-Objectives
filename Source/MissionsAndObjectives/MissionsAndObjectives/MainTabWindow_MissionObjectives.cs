@@ -46,13 +46,16 @@ namespace MissionsAndObjectives
             }
             foreach (ModContentPack mcp in LoadedModManager.RunningMods.Where(mcp => mcp.AllDefs.Any(def => def is MissionControlDef)))
             {
-                if (!MissionHandler.ModFolder.Any(mcpw => mcpw.packName == mcp.Identifier))
+                if (mcp != null)
                 {
-                    ModContentPackWrapper mcpw = new ModContentPackWrapper(mcp.Identifier);
-                    MissionHandler.ModFolder.Add(mcpw);
+                    if (!MissionHandler.ModFolder.Any(mcpw => mcpw.packName == mcp.Identifier))
+                    {
+                        ModContentPackWrapper mcpw = new ModContentPackWrapper(mcp.Identifier);
+                        MissionHandler.ModFolder.Add(mcpw);
+                    }
                 }
             }
-            if(MissionHandler.theme == null && !MissionHandler.openedOnce)
+            if (MissionHandler.theme == null && !MissionHandler.openedOnce)
             {
                 MissionHandler.theme = MissionHandler.ModFolder.Find(mcpw => mcpw.MCP.AllDefs.Contains(MCD.MainMissionControlDef));
             }
@@ -60,9 +63,12 @@ namespace MissionsAndObjectives
             {
                 selectedMission = AvailableMissions.Where(m => !m.def.IsFinished).FirstOrDefault();
             }
-            if(selectedObjective == null)
+            if (selectedObjective == null)
             {
-                selectedObjective = selectedMission.Objectives.Where(o => o.Active && !o.Finished).FirstOrDefault();
+                if (selectedMission != null && !selectedMission.Objectives.NullOrEmpty())
+                {
+                    selectedObjective = selectedMission.Objectives.Where(o => o.Active && !o.Finished).FirstOrDefault();
+                }
             }
             MissionHandler.openedOnce = true;
         }
@@ -121,19 +127,13 @@ namespace MissionsAndObjectives
         public void ResolveTargetLabel(ObjectiveDef def, out string label)
         {
             label = "";
-            if (!def.targets.NullOrEmpty())
+            if (def.objectiveType == ObjectiveType.Destroy && !def.targets.NullOrEmpty())
             {
-                label = def.targets.Find(t => t.def.BaseMaxHitPoints == def.targets.Max(t2 => t2.def.BaseMaxHitPoints)).def.LabelCap;
+                label = def.targets.Find(t => t.ThingDef.BaseMaxHitPoints == def.targets.Max(t2 => t2.ThingDef.BaseMaxHitPoints)).ThingDef.LabelCap;
             }
-            List<PawnKindDef> pawnList = new List<PawnKindDef>();
-            foreach (ThingValue tv in def.targets)
+            if(def.objectiveType == ObjectiveType.Hunt && !def.targets.NullOrEmpty())
             {
-                PawnKindDef pDef = DefDatabase<PawnKindDef>.GetNamed(tv.def.defName);
-                pawnList.Add(pDef);
-            }
-            if (pawnList.NullOrEmpty())
-            {
-                label = pawnList.Find(p => p.RaceProps.baseHealthScale == pawnList.Max(p2 => p2.RaceProps.baseHealthScale)).LabelCap;
+                label = def.targets.Find(tv => tv.PawnKindDef.RaceProps.baseHealthScale == def.targets.Max(tv2 => tv2.PawnKindDef.RaceProps.baseHealthScale)).PawnKindDef.LabelCap;
             }
         }
 
@@ -264,7 +264,7 @@ namespace MissionsAndObjectives
                 viewHeight = selectionHeight * MissionHandler.ModFolder.Count;
                 Rect viewRect = new Rect(0f, 0f, rect.width, viewHeight);
                 Widgets.BeginScrollView(new Rect(0f, 0f, rect.width, rect.height), ref MissionHandler.missionScrollPos, viewRect, true);
-                for(int i = 0; i < MissionHandler.ModFolder.Count; i++)
+                for(int i = 0; i < MissionHandler.ModFolder.Count+1; i++)
                 {
                     Rect selection = new Rect(0f, selectionYPos, rect.width, selectionHeight).ContractedBy(5f);                    
                     Text.Anchor = TextAnchor.MiddleCenter;
@@ -410,6 +410,7 @@ namespace MissionsAndObjectives
             //Station - Targets
             if ((objectiveDef.objectiveType == ObjectiveType.Destroy || objectiveDef.objectiveType == ObjectiveType.Hunt) && !objectiveDef.targets.NullOrEmpty())
             {
+                bool typeFlag = objectiveDef.objectiveType == ObjectiveType.Destroy;
                 ResolveTargetLabel(objectiveDef, out string s);
                 string s2 = "Targets".Translate() + ": " + s;
                 Vector2 v2 = Text.CalcSize(s2);
@@ -423,7 +424,10 @@ namespace MissionsAndObjectives
                     StringBuilder sb = new StringBuilder();
                     foreach (ThingValue tv in objectiveDef.targets)
                     {
-                        sb.AppendLine("    " + tv.def.LabelCap + ": " + objective.thingTracker.destroyedThings[tv.def] + "/" + tv.value);
+                        if (typeFlag)
+                        {sb.AppendLine("    " + tv.ThingDef.LabelCap + ": " + objective.thingTracker.destroyedThings[tv.ThingDef] + "/" + tv.value);}
+                        else
+                        {sb.AppendLine("    " + tv.PawnKindDef.LabelCap + ": " + objective.thingTracker.killedThings[tv.PawnKindDef] + "/" + tv.value);}
                     }
                     if (objectiveDef.targets.Count > 1)
                     {
@@ -479,8 +483,8 @@ namespace MissionsAndObjectives
                 if (objectiveDef.anyTarget)
                 {
                     ThingDef maxDef = objective.thingTracker.madeThings.ToList().Find(mt => mt.Value == objective.thingTracker.madeThings.Values.Max()).Key;
-                    pctAny = (float)objective.thingTracker.madeThings[maxDef] / (float)objectiveDef.targets.Find(tv => tv.def == maxDef).value;
-                    labelAny = (float)objective.thingTracker.madeThings[maxDef] + "/" + (float)objectiveDef.targets.Find(tv => tv.def == maxDef).value;
+                    pctAny = (float)objective.thingTracker.madeThings[maxDef] / (float)objectiveDef.targets.Find(tv => tv.ThingDef == maxDef).value;
+                    labelAny = (float)objective.thingTracker.madeThings[maxDef] + "/" + (float)objectiveDef.targets.Find(tv => tv.ThingDef == maxDef).value;
                 }
                 else
                 {
@@ -492,7 +496,7 @@ namespace MissionsAndObjectives
                 StringBuilder sb = new StringBuilder();
                 foreach (ThingValue tv in objectiveDef.targets)
                 {
-                    sb.AppendLine("    " + tv.def.LabelCap + ": " + objective.thingTracker.GetCountMadeFor(tv.def) + "/" + tv.value);
+                    sb.AppendLine("    " + tv.ThingDef.LabelCap + ": " + objective.thingTracker.GetCountMadeFor(tv.ThingDef) + "/" + tv.value);
                 }
                 if (objectiveDef.targets.Count > 1)
                 {
@@ -504,24 +508,35 @@ namespace MissionsAndObjectives
             }
             else if (objectiveDef.objectiveType == ObjectiveType.Destroy || objectiveDef.objectiveType == ObjectiveType.Hunt)
             {
+                //True means ThingDef - False mean PawnKindDef
+                bool typeFlag = objectiveDef.objectiveType == ObjectiveType.Destroy;
                 if (objectiveDef.anyTarget)
                 {
-                    ThingDef maxDef = objective.thingTracker.destroyedThings.ToList().Find(dt => dt.Value == objective.thingTracker.destroyedThings.Values.Max()).Key;
-                    pctAny = (float)objective.thingTracker.destroyedThings[maxDef] / (float)objectiveDef.targets.Find(tv => tv.def == maxDef).value;
-                    labelAny = (float)objective.thingTracker.destroyedThings[maxDef] + "/" + (float)objectiveDef.targets.Find(tv => tv.def == maxDef).value;
+                    if (typeFlag)
+                    {
+                        ThingDef maxDef = objective.thingTracker.destroyedThings.ToList().Find(dt => dt.Value == objective.thingTracker.destroyedThings.Values.Max()).Key;
+                        pctAny = (float)objective.thingTracker.destroyedThings[maxDef] / (float)objectiveDef.targets.Find(tv => tv.ThingDef == maxDef).value;
+                        labelAny = (float)objective.thingTracker.destroyedThings[maxDef] + "/" + (float)objectiveDef.targets.Find(tv => tv.ThingDef == maxDef).value;
+                    }
+                    else
+                    {
+                        PawnKindDef maxDef = objective.thingTracker.killedThings.ToList().Find(dt => dt.Value == objective.thingTracker.killedThings.Values.Max()).Key;
+                        pctAny = (float)objective.thingTracker.killedThings[maxDef] / (float)objectiveDef.targets.Find(tv => tv.PawnKindDef == maxDef).value;
+                        labelAny = (float)objective.thingTracker.killedThings[maxDef] + "/" + (float)objectiveDef.targets.Find(tv => tv.PawnKindDef == maxDef).value;
+                    }
                 }
                 else
                 {
-                    pct = ((float)objective.thingTracker.GetCountKilled / (float)objectiveDef.targets.Sum(tv => tv.value));
-                    label = objective.thingTracker.GetCountKilled + "/" + objectiveDef.targets.Sum(tv => tv.value);
+                    pct = ((float)objective.thingTracker.GetSumKilledDestroyed / (float)objectiveDef.targets.Sum(tv => tv.value));
+                    label = objective.thingTracker.GetSumKilledDestroyed + "/" + objectiveDef.targets.Sum(tv => tv.value);
                 }
                 DoProgressBar(BarRect, objectiveDef.anyTarget ? labelAny : label, objectiveDef.anyTarget ? pctAny : pct, MissionMats.green);
                 BarRect = BotBarRect;
             }
             else if (objectiveDef.objectiveType == ObjectiveType.Discover)
             {
-                pct = ((float)objective.thingTracker.GetCountDiscovered / (float)objectiveDef.targets.Count);
-                label = objective.thingTracker.GetCountDiscovered + "/" + objectiveDef.targets.Count;
+                pct = ((float)objective.thingTracker.GetCountDiscovered / (float)objectiveDef.targets.Sum(tv => tv.value));
+                label = objective.thingTracker.GetCountDiscovered + "/" + objectiveDef.targets.Sum(tv => tv.value);
                 DoProgressBar(BarRect, label, pct, MissionMats.green);
                 BarRect = BotBarRect;
             }
@@ -529,18 +544,7 @@ namespace MissionsAndObjectives
             {
                 float timer = objective.GetTimer;
                 pct = timer / objectiveDef.TimerTicks;
-                if (timer > GenDate.TicksPerYear)
-                {
-                    label = Math.Round(timer / GenDate.TicksPerYear, 1) + "y";
-                }
-                else if (timer > GenDate.TicksPerDay)
-                {
-                    label = Math.Round(timer / GenDate.TicksPerDay, 1) + "d";
-                }
-                else if (timer < GenDate.TicksPerDay)
-                {
-                    label = Math.Round(timer / GenDate.TicksPerHour, 1) + "h";
-                }
+                label = objective.GetTimerText;
                 if (objective.Finished)
                 {
                     label = "---";
@@ -594,10 +598,11 @@ namespace MissionsAndObjectives
                 Widgets.DrawHighlight(rect);
                 GUI.color = Color.white;
             }
-            skillRect.center = new Vector2(skillRect.center.x, skillRect.center.y + (num * rect.ExpandedBy(1f).height));
+
+            Rect skillSelect = new Rect(new Vector2(inRect.xMax - (skillRect.width * 2) - 5, inRect.y), skillRect.size);
             if (Widgets.ButtonText(new Rect(rect.x, rect.y, rect.width, rect.height), "", false, true, Color.blue, true))
             {
-                if (Mouse.IsOver(skillRect))
+                if (Mouse.IsOver(skillSelect))
                 {
                     Find.Selector.SelectedObjects.Clear();
                     if (!CapablePawns(objectiveDef).NullOrEmpty())

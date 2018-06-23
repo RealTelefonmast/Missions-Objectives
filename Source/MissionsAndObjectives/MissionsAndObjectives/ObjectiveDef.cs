@@ -52,13 +52,7 @@ namespace MissionsAndObjectives
             }
             if(objectiveType == ObjectiveType.Hunt)
             {
-                foreach(ThingValue tv in targets)
-                {
-                    if (DefDatabase<PawnKindDef>.GetNamed(tv.def.defName, false) == null)
-                    {
-                        Log.Error("ThingDef named '" + tv.def.defName+ "' of creature '" + tv.def.LabelCap+ "' needs a corresponding PawnKindDef named '" +tv.def.defName+ "'.");
-                    }
-                }
+                //Nothing so far
             }
             if (objectiveType == ObjectiveType.Research || objectiveType == ObjectiveType.Examine)
             {
@@ -157,7 +151,7 @@ namespace MissionsAndObjectives
         }
     }
 
-    public enum ObjectiveType
+    public enum ObjectiveType : byte
     {
         Research,
         Discover,

@@ -148,7 +148,7 @@ namespace MissionsAndObjectives
                                 {
                                     foreach (ThingValue tv in objective.def.targets)
                                     {
-                                        ThingDef def = tv.def;
+                                        ThingDef def = tv.ThingDef;
                                         if (!list.Contains(def))
                                         {
                                             list.Add(def);
