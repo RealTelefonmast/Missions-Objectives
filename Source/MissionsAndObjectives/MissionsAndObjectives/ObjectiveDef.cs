@@ -21,13 +21,15 @@ namespace MissionsAndObjectives
 
         public List<ThingDef> stationDefs = new List<ThingDef>();
 
-        public List<ObjectiveDef> dependantOn = new List<ObjectiveDef>();
-
         public List<ObjectiveDef> failOn = new List<ObjectiveDef>();
+
+        public List<IncidentProperties> incidentsOnStart = new List<IncidentProperties>();
 
         public List<IncidentProperties> incidentsOnCompletion = new List<IncidentProperties>();
 
         public List<IncidentProperties> incidentsOnFail = new List<IncidentProperties>();
+
+        public bool useMarker = true;
 
         public bool hideOnComplete = false;
 

@@ -7,13 +7,11 @@ using Verse;
 
 namespace MissionsAndObjectives
 {
-    public class Mission : IExposable
+    public class Mission : IExposable, IDisposable
     {
         public MissionDef def;
 
         public WorldComponent_Missions parent;
-
-        public bool failed = false;
 
         public bool seen = false;
 
@@ -35,13 +33,32 @@ namespace MissionsAndObjectives
 
         public void ExposeData()
         {
-            Scribe_Values.Look(ref failed, "failed");
             Scribe_Values.Look(ref seen, "seen");
             Scribe_Collections.Look(ref Objectives, "Objectives", LookMode.Deep, new object[] {
                 this,
             });
             Scribe_Defs.Look(ref def, "def");
             Scribe_References.Look(ref parent, "parent");
+        }
+
+        public void Dispose()
+        {
+            this.parent = null;
+            this.def = null;
+            this.Objectives.ForEach(o => o.Dispose());
+        }
+
+        public bool Failed
+        {
+            get
+            {
+                IEnumerable<Objective> inActive = Objectives.Where(o => !o.Visible && !o.RequiresInactive);
+                if (inActive.Count() > 0)
+                {
+                    return inActive.All(o => o.CanNeverActivate);
+                }
+                return false;
+            }
         }
 
         public Objective ObjectiveByDef(ObjectiveDef def)

@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace MissionsAndObjectives
 {
-    public class Objective : IExposable
+    public class Objective : IExposable, IDisposable
     {
         public ObjectiveDef def;
 
@@ -18,6 +18,8 @@ namespace MissionsAndObjectives
         public bool finishedOnce = false;
 
         public bool failedOnce = false;
+
+        public bool startedOnce = false;
 
         private float progress;
 
@@ -50,6 +52,7 @@ namespace MissionsAndObjectives
             Scribe_Defs.Look(ref def, "def");
             Scribe_Values.Look(ref finishedOnce, "finishedOnce");
             Scribe_Values.Look(ref failedOnce, "failedOnce");
+            Scribe_Values.Look(ref startedOnce, "startedOnce");
             Scribe_Values.Look(ref progress, "progress");
             Scribe_Values.Look(ref timer, "timer");
             Scribe_Deep.Look(ref thingTracker, "killTracker", new object[] {
@@ -57,6 +60,13 @@ namespace MissionsAndObjectives
                 def.objectiveType,
                 def.anyTarget
             });
+        }
+
+        public void Dispose()
+        {
+            this.parent = null;
+            this.def = null;
+            this.thingTracker = null;
         }
 
         // bool Getters
@@ -93,11 +103,47 @@ namespace MissionsAndObjectives
         {
             get
             {
+                return !parent.Failed && Visible;
+            }
+        }
+
+        public bool Visible
+        {
+            get
+            {
+                if (Finished)
+                {
+                    return !def.hideOnComplete;
+                }
                 if (GetTimer == def.TimerTicks)
                 {
-                    return RequisitesComplete && !def.hideOnComplete;
+                    return RequisitesComplete;
                 }
                 return true;
+            }
+        }
+
+        public bool RequiresInactive
+        {
+            get
+            {
+                if (!def.objectiveRequisites.NullOrEmpty())
+                {
+                    return def.objectiveRequisites.Any(o => !parent.parent.AllObjectives.Find(o2 => o2.def == o).Visible);
+                }
+                return false;
+            }
+        }
+
+        public bool CanNeverActivate
+        {
+            get
+            {
+                if (!def.objectiveRequisites.NullOrEmpty())
+                {
+                    return def.objectiveRequisites.Any(o => parent.parent.AllObjectives.Find(o2 => o2.def == o).Failed);
+                }
+                return false;
             }
         }
 
@@ -110,18 +156,6 @@ namespace MissionsAndObjectives
                     return def.objectiveRequisites.All(o => parent.parent.AllObjectives.Find(o2 => o2.def == o).Finished);
                 }
                 return true;
-            }
-        }
-
-        public bool DependantComplete
-        {
-            get
-            {
-                if (!def.dependantOn.NullOrEmpty())
-                {
-                    return def.dependantOn.All(o => parent.parent.AllObjectives.Find(o2 => o2.def == o).Finished);
-                }
-                return false;
             }
         }
 
@@ -158,10 +192,6 @@ namespace MissionsAndObjectives
                 if (def.objectiveType == ObjectiveType.Wait)
                 {
                     return GetTimer == 0;
-                }
-                if (DependantComplete)
-                {
-                    return true;
                 }
                 return false;
             }
@@ -248,6 +278,19 @@ namespace MissionsAndObjectives
             progress = Mathf.Min(GetProgress + workAmount, def.workAmount);
         }
 
+        public void Notify_Start()
+        {
+            if (!startedOnce)
+            {
+                //Messages.Message("FinishedObjective".Translate() + ": " + def.LabelCap, MessageTypeDefOf.PositiveEvent);
+                foreach (IncidentProperties props in def.incidentsOnStart)
+                {
+                    props.Notify_Execute(Find.AnyPlayerHomeMap, thingTracker.target);
+                }
+            }
+            startedOnce = true;
+        }
+
         public void Notify_Finish()
         {
             if (!finishedOnce)
@@ -255,7 +298,7 @@ namespace MissionsAndObjectives
                 Messages.Message("FinishedObjective".Translate() + ": " + def.LabelCap, MessageTypeDefOf.PositiveEvent);
                 foreach (IncidentProperties props in def.incidentsOnCompletion)
                 {
-                    props.Notify_Execute(Find.AnyPlayerHomeMap);
+                    props.Notify_Execute(Find.AnyPlayerHomeMap, thingTracker.target);
                 }
             }
             finishedOnce = true;
@@ -268,7 +311,7 @@ namespace MissionsAndObjectives
                 Messages.Message("FailedObjective".Translate() + ": " + def.LabelCap, MessageTypeDefOf.NegativeEvent);
                 foreach (IncidentProperties props in def.incidentsOnFail)
                 {
-                    props.Notify_Execute(Find.AnyPlayerHomeMap);                  
+                    props.Notify_Execute(Find.AnyPlayerHomeMap, thingTracker.target);                  
                 }
             }
             failedOnce = true;

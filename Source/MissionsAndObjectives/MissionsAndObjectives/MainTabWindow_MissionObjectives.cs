@@ -61,7 +61,7 @@ namespace MissionsAndObjectives
             }
             if (selectedMission == null)
             {
-                selectedMission = AvailableMissions.Where(m => !m.def.IsFinished).FirstOrDefault();
+                selectedMission = AvailableMissions.FirstOrDefault();
             }
             if (selectedObjective == null)
             {
@@ -112,6 +112,15 @@ namespace MissionsAndObjectives
             }
         }
 
+        public void DoInfoSign(Rect rect, bool add = false)
+        {
+            if (add)
+            {
+                rect = new Rect(rect.xMax, rect.y, rect.height, rect.height);               
+            }
+            Widgets.DrawTextureFitted(rect, MissionMats.info, 1f);
+        }
+
         public void DoProgressBar(Rect rect, string label, float pct, Texture2D barMat)
         {
             Widgets.FillableBar(rect, pct, barMat, MissionMats.black, true);
@@ -126,14 +135,14 @@ namespace MissionsAndObjectives
 
         public void ResolveTargetLabel(ObjectiveDef def, out string label)
         {
-            label = "";
+            label = "Targets".Translate();
             if (def.objectiveType == ObjectiveType.Destroy && !def.targets.NullOrEmpty())
             {
-                label = def.targets.Find(t => t.ThingDef.BaseMaxHitPoints == def.targets.Max(t2 => t2.ThingDef.BaseMaxHitPoints)).ThingDef.LabelCap;
+                label = "Target".Translate()+ ": " + def.targets.Find(t => t.ThingDef.BaseMaxHitPoints == def.targets.Max(t2 => t2.ThingDef.BaseMaxHitPoints)).ThingDef.LabelCap;
             }
             if(def.objectiveType == ObjectiveType.Hunt && !def.targets.NullOrEmpty())
             {
-                label = def.targets.Find(tv => tv.PawnKindDef.RaceProps.baseHealthScale == def.targets.Max(tv2 => tv2.PawnKindDef.RaceProps.baseHealthScale)).PawnKindDef.LabelCap;
+                label = "Target".Translate() + ": " + def.targets.Find(tv => tv.PawnKindDef.RaceProps.baseHealthScale == def.targets.Max(tv2 => tv2.PawnKindDef.RaceProps.baseHealthScale)).PawnKindDef.LabelCap;
             }
         }
 
@@ -163,6 +172,7 @@ namespace MissionsAndObjectives
         public void DoLefPart(Rect rect)
         {
             //AddTabs
+            Text.Font = GameFont.Small;
             Rect tabRect = new Rect(rect.x + 5f, rect.y - 20f, rect.width - 30f, 20f);
             string missions = "Missions".Translate();
             string themes = "Themes".Translate();
@@ -208,7 +218,7 @@ namespace MissionsAndObjectives
                     if (mcp.MCD != MCD.MainMissionControlDef)
                     {
                         ii++;
-                        List<Mission> MissionList = this.AvailableMissions.Where(m => mcp.MCP.AllDefs.Contains(m.def) && !m.def.hideOnComplete).ToList();
+                        List<Mission> MissionList = this.AvailableMissions.Where(m => mcp.MCP.AllDefs.Contains(m.def) && m.def.Visible).ToList();
                         float groupHeight = MissionList.Count * selectionHeight;
 
                         //Identifier
@@ -370,7 +380,7 @@ namespace MissionsAndObjectives
             //Objective View
             Widgets.DrawMenuSection(objectiveRect);
             float objectiveTabHeight = 60f;
-            float viewHeight = objectiveTabHeight * mission.Objectives.Where(o => o.Active).Count();
+            float viewHeight = objectiveTabHeight * mission.Objectives.Where(o => o.Visible).Count();
             GUI.BeginGroup(objectiveRect);
             Rect inRect = new Rect(0f, 0f, objectiveRect.width, objectiveRect.height).ContractedBy(1f);
             Rect viewRect = new Rect(0f, 0f, inRect.width, viewHeight);
@@ -380,11 +390,38 @@ namespace MissionsAndObjectives
             for (int i = 0; i < mission.Objectives.Count; i++)
             {
                 Objective obj = mission.Objectives[i];
-                if (obj.Active)
+                if (obj.Visible || DebugSettings.godMode)
                 {
                     Rect objectiveSelection = new Rect(0f, (float)objectiveTabYPos, objectiveRect.ContractedBy(1).width, objectiveTabHeight);
                     DoObjectiveTab(objectiveSelection, obj, i);
                     objectiveTabYPos += (int)objectiveTabHeight;
+                    if (DebugSettings.godMode)
+                    {
+                        if (obj.Active)
+                        {
+                            GUI.color = Color.blue;
+                            Widgets.DrawHighlight(objectiveSelection);
+                            GUI.color = Color.white;
+                        }
+                        else
+                        {
+                            GUI.color = Color.grey;
+                            Widgets.DrawHighlight(objectiveSelection);
+                            GUI.color = Color.white;
+                        }
+                        if (obj.Finished)
+                        {
+                            GUI.color = Color.green;
+                            Widgets.DrawHighlight(objectiveSelection);
+                            GUI.color = Color.white;
+                        }
+                        if (obj.CanNeverActivate)
+                        {
+                            GUI.color = Color.magenta;
+                            Widgets.DrawHighlight(objectiveSelection);
+                            GUI.color = Color.white;
+                        }
+                    }
                 }
             }
             Widgets.EndScrollView();
@@ -408,35 +445,54 @@ namespace MissionsAndObjectives
             Widgets.Label(labelRect, objectiveLabel);
 
             //Station - Targets
-            if ((objectiveDef.objectiveType == ObjectiveType.Destroy || objectiveDef.objectiveType == ObjectiveType.Hunt) && !objectiveDef.targets.NullOrEmpty())
+            if (objectiveDef.targets.Count > 1)
             {
-                bool typeFlag = objectiveDef.objectiveType == ObjectiveType.Destroy;
                 ResolveTargetLabel(objectiveDef, out string s);
-                string s2 = "Targets".Translate() + ": " + s;
-                Vector2 v2 = Text.CalcSize(s2);
-                v2.x += 4f;
-                Rect rect2 = new Rect(new Vector2(inRect.x, inRect.yMax - v2.y), v2);
-                MissionUtils.DrawMenuSectionColor(rect2, 1, new ColorInt(35, 35, 35), new ColorInt(85, 85, 85));
-                Widgets.Label(rect2, s2);
+                float half = inRect.height / 2f;
+                Rect rect2 = new Rect(inRect.x, inRect.yMax - half, half, half);
+                DoInfoSign(rect2);
+                rect2 = new Rect(rect2.x, rect2.y, rect2.y * 3f, rect2.height);
 
-                if (!objectiveDef.targets.NullOrEmpty())
+                StringBuilder sb = new StringBuilder();
+                bool destructive = false;
+                foreach (ThingValue tv in objectiveDef.targets)
                 {
-                    StringBuilder sb = new StringBuilder();
+                    if (objectiveDef.objectiveType == ObjectiveType.Hunt)
+                    { sb.AppendLine("    " + tv.PawnKindDef.LabelCap + ": " + objective.thingTracker.killedThings[tv.PawnKindDef] + "/" + tv.value); destructive = true; }
+                    else if (objectiveDef.objectiveType == ObjectiveType.Destroy)
+                    { sb.AppendLine("    " + tv.ThingDef.LabelCap + ": " + objective.thingTracker.destroyedThings[tv.ThingDef] + "/" + tv.value); destructive = true; }
+                    else if (objectiveDef.objectiveType == ObjectiveType.Discover)
+                    { sb.AppendLine("    " + tv.ThingDef.LabelCap + ": " + objective.thingTracker.discoveredThings[tv.ThingDef] + "/" + tv.value); }
+                    else
+                    { sb.AppendLine("    " + tv.ThingDef.LabelCap); }
+                }
+                if (objectiveDef.targets.Count > 1 && destructive)
+                {
+                    TooltipHandler.TipRegion(rect2, "AllTargets".Translate(new object[] { s, sb }));
+                }
+                else if (objectiveDef.objectiveType == ObjectiveType.Craft || objectiveDef.objectiveType == ObjectiveType.Construct)
+                {
+                    StringBuilder sb2 = new StringBuilder();
                     foreach (ThingValue tv in objectiveDef.targets)
                     {
-                        if (typeFlag)
-                        {sb.AppendLine("    " + tv.ThingDef.LabelCap + ": " + objective.thingTracker.destroyedThings[tv.ThingDef] + "/" + tv.value);}
-                        else
-                        {sb.AppendLine("    " + tv.PawnKindDef.LabelCap + ": " + objective.thingTracker.killedThings[tv.PawnKindDef] + "/" + tv.value);}
+                        sb2.AppendLine("    " + tv.ThingDef.LabelCap + ": " + objective.thingTracker.GetCountMadeFor(tv.ThingDef) + "/" + tv.value);
                     }
                     if (objectiveDef.targets.Count > 1)
                     {
-                        TooltipHandler.TipRegion(rect2, "AllTargets".Translate(new object[] {
-                    s,
-                    sb
-                }));
+                        string specific = "MakeTargets".Translate(new object[] { sb2 });
+                        string any = "MakeTargetsAny".Translate(new object[] { sb2 });
+                        TooltipHandler.TipRegion(rect2, objectiveDef.anyTarget ? any : specific);
                     }
                 }
+                else if (objectiveDef.objectiveType == ObjectiveType.Discover)
+                {
+                    if (objectiveDef.anyTarget)
+                    { TooltipHandler.TipRegion(rect2, "DiscoverAnyTargets".Translate(new object[] { sb })); }
+                    else
+                    { TooltipHandler.TipRegion(rect2, "DiscoverTargets".Translate(new object[] { sb })); }
+                }
+                else
+                { TooltipHandler.TipRegion(rect2, "CommonTargets".Translate(new object[] { sb })); }
             }
             if (!objectiveDef.stationDefs.NullOrEmpty())
             {
@@ -446,6 +502,7 @@ namespace MissionsAndObjectives
                 Rect rect2 = new Rect(new Vector2(inRect.x, inRect.yMax - v2.y), v2);
                 MissionUtils.DrawMenuSectionColor(rect2, 1, new ColorInt(35, 35, 35), new ColorInt(85, 85, 85));
                 Widgets.Label(rect2, s);
+                DoInfoSign(rect2, true);
 
                 if (objectiveDef.stationDefs.Count > 1)
                 {
@@ -492,18 +549,6 @@ namespace MissionsAndObjectives
                     label = (float)objective.thingTracker.GetCountMade + "/" + (float)objectiveDef.targets.Sum(tv => tv.value);
                 }
                 DoProgressBar(BarRect, objectiveDef.anyTarget ? labelAny : label, objectiveDef.anyTarget ? pctAny : pct, MissionMats.orange);
-
-                StringBuilder sb = new StringBuilder();
-                foreach (ThingValue tv in objectiveDef.targets)
-                {
-                    sb.AppendLine("    " + tv.ThingDef.LabelCap + ": " + objective.thingTracker.GetCountMadeFor(tv.ThingDef) + "/" + tv.value);
-                }
-                if (objectiveDef.targets.Count > 1)
-                {
-                    string specific = "MakeTargets".Translate(new object[] { sb });
-                    string any = "MakeTargetsAny".Translate(new object[] { sb });
-                    TooltipHandler.TipRegion(BarRect, objectiveDef.anyTarget ? any : specific);
-                }
                 BarRect = BotBarRect;
             }
             else if (objectiveDef.objectiveType == ObjectiveType.Destroy || objectiveDef.objectiveType == ObjectiveType.Hunt)
@@ -535,8 +580,17 @@ namespace MissionsAndObjectives
             }
             else if (objectiveDef.objectiveType == ObjectiveType.Discover)
             {
-                pct = ((float)objective.thingTracker.GetCountDiscovered / (float)objectiveDef.targets.Sum(tv => tv.value));
-                label = objective.thingTracker.GetCountDiscovered + "/" + objectiveDef.targets.Sum(tv => tv.value);
+                if (objectiveDef.anyTarget)
+                {
+                    ThingDef maxDef = objective.thingTracker.discoveredThings.ToList().Find(dt => dt.Value == objective.thingTracker.discoveredThings.Values.Max()).Key;
+                    pct = (float)objective.thingTracker.discoveredThings[maxDef] / (float)objectiveDef.targets.Find(tv => tv.ThingDef == maxDef).value;
+                    label = (float)objective.thingTracker.discoveredThings[maxDef] + "/" + (float)objectiveDef.targets.Find(tv => tv.ThingDef == maxDef).value;                   
+                }
+                else
+                {
+                    pct = ((float)objective.thingTracker.GetCountDiscovered / (float)objectiveDef.targets.Sum(tv => tv.value));
+                    label = objective.thingTracker.GetCountDiscovered + "/" + objectiveDef.targets.Sum(tv => tv.value);
+                }
                 DoProgressBar(BarRect, label, pct, MissionMats.green);
                 BarRect = BotBarRect;
             }
@@ -625,20 +679,20 @@ namespace MissionsAndObjectives
             {
                 GUI.color = Color.yellow;
                 Widgets.DrawHighlight(rect);
+                GUI.color = Color.white;
             }
-            GUI.color = Color.white;
             WidgetRow widgetRow = new WidgetRow(rect.x, rect.y + (rect.height - 24f) / 2, UIDirection.RightThenUp, 99999f, 1f);
-            if (mission != null && !mission.def.IsFinished)
+            if (mission != null && !mission.def.IsFinished && !mission.Failed)
             {
                 widgetRow.Icon(ContentFinder<Texture2D>.Get(MCD.boxActive, false), null);
             }
-            else if (mission.failed)
-            {
-                widgetRow.Icon(ContentFinder<Texture2D>.Get(MCD.boxFailed, false), null);
-            }
-            else if (mission.def.IsFinished)
+            if (mission.def.IsFinished)
             {
                 widgetRow.Icon(ContentFinder<Texture2D>.Get(MCD.boxFinished, false), null);
+            }
+            if(mission.Failed)
+            {
+                widgetRow.Icon(ContentFinder<Texture2D>.Get(MCD.boxFailed, false), null);
             }
             widgetRow.Gap(5f);
             widgetRow.Label(mission.def.label, 200f);
@@ -647,6 +701,12 @@ namespace MissionsAndObjectives
                 SoundDefOf.Click.PlayOneShotOnCamera(null);
                 this.selectedMission = mission;
                 this.selectedObjective = selectedMission.Objectives.FirstOrDefault();
+            }
+            if (mission.Failed)
+            {
+                GUI.color = Color.red;
+                Widgets.DrawHighlight(rect);
+                GUI.color = Color.white;
             }
         }
     }

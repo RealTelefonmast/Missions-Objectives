@@ -15,9 +15,9 @@ namespace MissionsAndObjectives
 
         public List<ThingValue> distanceFromThings = new List<ThingValue>();
 
-        public AreaCheck avoidRoofs = AreaCheck.Allow;
+        public AreaCheck avoidRoofs = AreaCheck.Avoid;
 
-        public AreaCheck avoidHome = AreaCheck.Allow;
+        public AreaCheck avoidHome = AreaCheck.Avoid;
     }
 
     public enum AreaCheck

@@ -23,6 +23,8 @@ namespace MissionsAndObjectives
 
         public Dictionary<PawnKindDef, int> killedThings = new Dictionary<PawnKindDef, int>();
 
+        public TargetInfo target;
+
         public ThingTracker()
         {
         }
@@ -134,11 +136,15 @@ namespace MissionsAndObjectives
         {
             get
             {
-                if (any)
+                if (killedThings.Count > 0)
                 {
-                    return targetsToCheck.Any(tv => killedThings.ContainsKey(tv.PawnKindDef) && killedThings[tv.PawnKindDef] >= tv.value);
+                    if (any)
+                    {
+                        return targetsToCheck.Any(tv => killedThings.ContainsKey(tv.PawnKindDef) && killedThings[tv.PawnKindDef] >= tv.value);
+                    }
+                    return GetCountKilledPawns >= targetsToCheck.Sum(tv => tv.value);
                 }
-                return GetCountKilledPawns >= targetsToCheck.Sum(tv => tv.value);
+                return true;
             }
         }
 
@@ -160,11 +166,15 @@ namespace MissionsAndObjectives
         {
             get
             {
-                if (any)
+                if (destroyedThings.Count > 0)
                 {
-                    return targetsToCheck.Any(tv => destroyedThings.ContainsKey(tv.ThingDef) && destroyedThings[tv.ThingDef] >= tv.value);
+                    if (any)
+                    {
+                        return targetsToCheck.Any(tv => destroyedThings.ContainsKey(tv.ThingDef) && destroyedThings[tv.ThingDef] >= tv.value);
+                    }
+                    return GetCountDestroyedThings >= targetsToCheck.Sum(tv => tv.value);
                 }
-                return GetCountDestroyedThings >= targetsToCheck.Sum(tv => tv.value);
+                return true;
             }
         }
 
@@ -209,35 +219,39 @@ namespace MissionsAndObjectives
 
         // Voids
 
-        public void Kill(PawnKindDef def)
+        public void Kill(PawnKindDef def, IntVec3 cell, Map map)
         {
             if (killedThings.ContainsKey(def))
             {
                 killedThings[def] += 1;
+                target = new TargetInfo(cell, map, true);
             }
         }
 
-        public void Destroy(ThingDef def)
+        public void Destroy(ThingDef def, IntVec3 cell, Map map)
         {
             if (destroyedThings.ContainsKey(def))
             {
                 destroyedThings[def] += 1;
+                target = new TargetInfo(cell, map, true);
             }
         }
 
-        public void Discover(ThingDef def)
+        public void Discover(Thing thing)
         {
-            if (discoveredThings.ContainsKey(def))
+            if (discoveredThings.ContainsKey(thing.def))
             {
-                discoveredThings[def] += 1;
+                discoveredThings[thing.def] += 1;
+                target = thing;
             }
         }
 
-        public void Make(ThingDef def)
+        public void Make(ThingDef def, IntVec3 cell, Map map)
         {
             if (madeThings.ContainsKey(def))
             {
                 madeThings[def] += 1;
+                target = new TargetInfo(cell, map, true);
             }
         }
     }

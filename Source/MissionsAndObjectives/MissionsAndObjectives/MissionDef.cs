@@ -17,11 +17,25 @@ namespace MissionsAndObjectives
 
         public bool hideOnComplete = false;
 
+        public bool repeatable = false;
+
         public bool IncidentBound
         {
             get
             {
-                return DefDatabase<MissionIncidentDef>.AllDefsListForReading.Any((MissionIncidentDef x) => x.missionUnlocks.Contains(this)) || DefDatabase<ObjectiveDef>.AllDefsListForReading.Any(o => o.incidentsOnCompletion.Any(ic => ic.missionUnlocks.Contains(this)) || o.incidentsOnFail.Any(ic => ic.missionUnlocks.Contains(this)));
+                if (DefDatabase<MissionIncidentDef>.AllDefsListForReading.Any(x => !x.missionUnlocks.NullOrEmpty() && x.missionUnlocks.Contains(this)))
+                {
+                    return true;
+                }
+                if (DefDatabase<MissionIncidentDef>.AllDefsListForReading.Any(x => x.incidentProperties.Any(x2 => !x2.missionUnlocks.NullOrEmpty() && x2.missionUnlocks.Contains(this))))
+                {
+                    return true;
+                }
+                if (DefDatabase<ObjectiveDef>.AllDefsListForReading.Any(o => o.incidentsOnCompletion.Any(ic => !ic.missionUnlocks.NullOrEmpty() && ic.missionUnlocks.Contains(this)) || o.incidentsOnFail.Any(ic => !ic.missionUnlocks.NullOrEmpty() && ic.missionUnlocks.Contains(this))))
+                {
+                    return true;
+                }
+                return false;
             }
         }
 
@@ -29,7 +43,31 @@ namespace MissionsAndObjectives
         {
             get
             {
-                return Find.World.GetComponent<WorldComponent_Missions>().Missions.Find(m => m.def == this).Objectives.All(o => o.Finished);
+                if (WorldComponent_Missions.MissionHandler.Missions.Any(m => m.def == this))
+                {
+                    return Find.World.GetComponent<WorldComponent_Missions>().Missions.Find(m => m.def == this).Objectives.All(o => o.Finished);
+                }
+                return false;
+            }
+        }
+
+        public bool AlreadyDone
+        {
+            get
+            {
+                return WorldComponent_Missions.MissionHandler.FinishedMissions.Any(m => m == this);
+            }
+        }
+
+        public bool Visible
+        {
+            get
+            {
+                if (IsFinished)
+                {
+                    return !hideOnComplete;
+                }
+                return true;
             }
         }
 
@@ -62,6 +100,10 @@ namespace MissionsAndObjectives
         {
             get
             {
+                if (!repeatable)
+                {
+                    return this.PrerequisitesCompleted && !AlreadyDone;
+                }
                 return this.PrerequisitesCompleted;
             }
         }

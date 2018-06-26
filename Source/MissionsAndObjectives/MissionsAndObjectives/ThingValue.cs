@@ -12,7 +12,7 @@ namespace MissionsAndObjectives
 {
     public sealed class ThingValue
     {
-        private string defName;
+        public string defName;
         public int value = 1;     
 
         public ThingValue()

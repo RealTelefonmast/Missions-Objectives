@@ -13,6 +13,8 @@ namespace MissionsAndObjectives
     {
         public List<Mission> Missions = new List<Mission>();
 
+        public List<MissionDef> FinishedMissions = new List<MissionDef>();
+
         public List<Thing> tempThingList = new List<Thing>();
 
         public List<ModContentPackWrapper> ModFolder = new List<ModContentPackWrapper>();
@@ -33,6 +35,7 @@ namespace MissionsAndObjectives
             Scribe_Deep.Look(ref theme, "theme");
             Scribe_Collections.Look(ref ModFolder, "ModFolder");
             Scribe_Collections.Look(ref Missions, "Mission");
+            Scribe_Collections.Look(ref FinishedMissions, "FinishedMissions");
         }
 
         public WorldComponent_Missions(World world) : base(world)
@@ -77,10 +80,12 @@ namespace MissionsAndObjectives
                     }
                 }
             }
-            foreach (Mission mission in Missions)
+            for(int i = 0; i < Missions.Count; i++)
             {
+                Mission mission = Missions[i];
                 foreach (Objective objective in mission.Objectives)
                 {
+                    objective.Notify_Start();
                     if (objective.Finished)
                     {
                         objective.Notify_Finish();
@@ -92,6 +97,18 @@ namespace MissionsAndObjectives
                     if (objective.Active && !objective.Finished && !objective.Failed)
                     {
                         mission.TimePassed(objective, 1);
+                    }
+                }
+                if (mission.def.IsFinished)
+                {
+                    if (!FinishedMissions.Contains(mission.def))
+                    {
+                        FinishedMissions.Add(mission.def);
+                    }
+                    if (mission.def.hideOnComplete || mission.def.repeatable)
+                    {
+                        Missions.Remove(mission);
+                        mission.Dispose();
                     }
                 }
             }

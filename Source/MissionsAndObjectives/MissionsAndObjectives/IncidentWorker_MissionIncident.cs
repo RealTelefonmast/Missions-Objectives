@@ -27,7 +27,7 @@ namespace MissionsAndObjectives
 
         protected override bool TryExecuteWorker(IncidentParms parms)
         {
-            if (Def.type == MissionIncidentType.MissionStart)
+            if (Def.incidentType == MissionIncidentType.MissionStart)
             {
                 foreach (MissionDef mission in Def.missionUnlocks)
                 {
@@ -35,12 +35,15 @@ namespace MissionsAndObjectives
                 }
             }
             else
-            {
-                if(Def.customIncident != null)
+            {              
+                if(!Def.incidentProperties.NullOrEmpty())
                 {
-                    if (Def.Worker.CanFireNow(parms.target))
+                    foreach (IncidentProperties props in Def.incidentProperties)
                     {
-                        Def.customIncident.Notify_Execute(parms.target as Map);
+                        if (Def.Worker.CanFireNow(parms.target))
+                        {
+                            props.Notify_Execute(parms.target as Map, null);
+                        }
                     }
                 }
             }

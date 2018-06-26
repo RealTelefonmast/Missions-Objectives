@@ -16,27 +16,27 @@ namespace MissionsAndObjectives
 
     public class MissionIncidentDef : IncidentDef
     {
-        public MissionIncidentType type = MissionIncidentType.MissionStart;
+        public MissionIncidentType incidentType = MissionIncidentType.MissionStart;
 
         public List<JobDef> anyJobNeeded = new List<JobDef>();
 
-        public List<ThingDef> thingRequisites = new List<ThingDef>();
+        public List<ThingValue> thingRequisites = new List<ThingValue>();
 
         public List<MissionDef> missionRequisites = new List<MissionDef>();
 
         public List<ObjectiveDef> objectiveRequisites = new List<ObjectiveDef>();
 
-        public IncidentProperties customIncident;
+        public List<IncidentProperties> incidentProperties = new List<IncidentProperties>();
 
-        public List<MissionDef> missionUnlocks;
+        public List<MissionDef> missionUnlocks = new List<MissionDef>();
 
         public override IEnumerable<string> ConfigErrors()
         {
-            if (type == MissionIncidentType.CustomWorker && customIncident == null)
+            if (incidentType == MissionIncidentType.CustomWorker && incidentProperties.NullOrEmpty())
             {
                 yield return "MissionIncidentDef is missing field 'customIncident'.";
             }
-            if(type == MissionIncidentType.MissionStart && missionUnlocks.NullOrEmpty())
+            if(incidentType == MissionIncidentType.MissionStart && missionUnlocks.NullOrEmpty())
             {
                 yield return "MissionIncidentDef unlocks missions but has no MissionDefs in field 'missionUnlocks'.";
             }
@@ -78,7 +78,7 @@ namespace MissionsAndObjectives
         {
             if (!thingRequisites.NullOrEmpty())
             {
-                return map.listerThings.AllThings.All((Thing x) => thingRequisites.Contains(x.def));
+                return thingRequisites.All(tv => map.listerThings.ThingsOfDef(tv.ThingDef).Count >= tv.value);
             }
             return true;
         }
@@ -98,12 +98,17 @@ namespace MissionsAndObjectives
 
         public bool CanStart(Map map)
         {
-            if (Missions.Missions.All((Mission x) => !missionUnlocks.Contains(x.def)))
+            if (ObjectivesDone && MissionsDone && ThingsAvailable(map) && JobsAvailable(map))
             {
-                if (ObjectivesDone && MissionsDone && ThingsAvailable(map) && JobsAvailable(map))
+                if (incidentType == MissionIncidentType.MissionStart)
                 {
-                    return true;
+                    if (Missions.Missions.All((Mission x) => !missionUnlocks.NullOrEmpty() && !missionUnlocks.Contains(x.def)))
+                    {
+                        return true;
+                    }
+                    return false;
                 }
+                return true;
             }
             return false;
         }

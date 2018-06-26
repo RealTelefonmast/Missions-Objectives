@@ -30,7 +30,7 @@ namespace MissionsAndObjectives
             StringBuilder allTimers = new StringBuilder();
             foreach (Mission mission in WorldComponent_Missions.MissionHandler.Missions)
             {
-                foreach (Objective objective in mission.Objectives)
+                foreach (Objective objective in mission.Objectives.Where(o => o.Active))
                 {
                     if (objective.def.timerDays > 0)
                     {

@@ -78,7 +78,7 @@ namespace MissionsAndObjectives
 
                 Graphic = GraphicDatabase.Get(typeof(Graphic_Single), path, ShaderDatabase.MetaOverlay, __instance.def.size.ToVector2(), Color.white, Color.white);
 
-                if (Missions.Missions.Any(m => m.Objectives.Any(o => !o.Finished && o.Active && o.def.targets.Any(tv => tv.ThingDef == __instance.def))))
+                if (Missions.Missions.Any(m => m.Objectives.Any(o => o.def.useMarker && !o.Finished && o.Active && o.def.targets.Any(tv => tv.ThingDef == __instance.def))))
                 {
                     Material Mat = Graphic.MatAt(Rot4.North, null);
                     Printer_Mesh.PrintMesh(layer, __instance.DrawPos, Graphic.MeshAt(Rot4.North), Mat);
@@ -96,7 +96,7 @@ namespace MissionsAndObjectives
             {
                 if (__instance != null)
                 {
-                    if (Missions.Missions.Any(m => m.Objectives.Any(o => !o.Finished && o.Active && o.def.targets.Any(tv => tv.ThingDef == __instance.def))))
+                    if (Missions.Missions.Any(m => m.Objectives.Any(o => o.def.useMarker && !o.Finished && o.Active && o.def.targets.Any(tv => tv.PawnKindDef == __instance.kindDef))))
                     {
                         string path = Missions.theme != null ? Missions.theme.MCD.targetTex : "UI/ObjectiveMarker";
                         Graphic = GraphicDatabase.Get(typeof(Graphic_Single), path, ShaderDatabase.MetaOverlay, __instance.Drawer.renderer.graphics.nakedGraphic.drawSize, Color.white, Color.white);
@@ -122,7 +122,7 @@ namespace MissionsAndObjectives
         {
             public static void Postfix(Frame __instance)
             {
-                Missions.Missions.ForEach(m => m.Objectives.Where(o => o.Active && !o.Finished).ToList().ForEach(o => o.thingTracker.Make(__instance.def.entityDefToBuild as ThingDef)));
+                Missions.Missions.ForEach(m => m.Objectives.Where(o => o.Active && !o.Finished).ToList().ForEach(o => o.thingTracker.Make(__instance.def.entityDefToBuild as ThingDef, __instance.Position, __instance.Map)));
             }
         }
 
@@ -130,12 +130,12 @@ namespace MissionsAndObjectives
         [HarmonyPatch("MakeRecipeProducts")]
         static class CraftPatch
         {
-            public static void Postfix(RecipeDef recipeDef)
+            public static void Postfix(RecipeDef recipeDef, Pawn worker)
             {
                 foreach (ThingCountClass count in recipeDef.products)
                 {
                     ThingDef def = count.thingDef;
-                    Missions.Missions.ForEach(m => m.Objectives.Where(o => o.Active && !o.Finished).ToList().ForEach(o => o.thingTracker.Make(def)));
+                    Missions.Missions.ForEach(m => m.Objectives.Where(o => o.Active && !o.Finished).ToList().ForEach(o => o.thingTracker.Make(def, worker.Position, worker.Map)));
                 }
             }
         }
@@ -149,7 +149,7 @@ namespace MissionsAndObjectives
             {
                 if (__instance.Map == Find.AnyPlayerHomeMap && !respawningAfterLoad)
                 {
-                    Missions.Missions.ForEach(m => m.Objectives.Where(o => o.Active && !o.Finished).ToList().ForEach(o => o.thingTracker.Discover(__instance.def)));
+                    Missions.Missions.ForEach(m => m.Objectives.Where(o => o.Active && !o.Finished).ToList().ForEach(o => o.thingTracker.Discover(__instance)));
                 }
             }
         }
@@ -159,8 +159,12 @@ namespace MissionsAndObjectives
         static class KillThingPatch
         {
             private static ThingDef temp;
+            private static IntVec3 tempPos;
+            private static Map tempMap;
             public static bool Prefix(Thing __instance)
             {
+                tempMap = __instance.Map;
+                tempPos = __instance.Position;
                 temp = __instance.def;
                 return true;
             }
@@ -171,7 +175,7 @@ namespace MissionsAndObjectives
                 {
                     if ((dinfo.Instigator as Pawn).IsColonist)
                     {
-                        Missions.Missions.ForEach(m => m.Objectives.Where(o => o.Active && !o.Finished).ToList().ForEach(o => o.thingTracker.Destroy(temp)));
+                        Missions.Missions.ForEach(m => m.Objectives.Where(o => o.Active && !o.Finished).ToList().ForEach(o => o.thingTracker.Destroy(temp, tempPos, tempMap)));
                     }
                 }
             }
@@ -182,8 +186,12 @@ namespace MissionsAndObjectives
         static class KillPawnPatch
         {
             private static PawnKindDef temp;
+            private static IntVec3 tempPos;
+            private static Map tempMap;
             public static bool Prefix(Pawn __instance)
             {
+                tempMap = __instance.Map;
+                tempPos = __instance.Position;
                 temp = __instance.kindDef;
                 return true;
             }
@@ -194,7 +202,7 @@ namespace MissionsAndObjectives
                 {
                     if ((dinfo.Instigator as Pawn).IsColonist)
                     {
-                        Missions.Missions.ForEach(m => m.Objectives.Where(o => o.Active && !o.Finished).ToList().ForEach(o => o.thingTracker.Kill(temp)));
+                        Missions.Missions.ForEach(m => m.Objectives.Where(o => o.Active && !o.Finished).ToList().ForEach(o => o.thingTracker.Kill(temp, tempPos, tempMap)));
                     }
                 }
             }
