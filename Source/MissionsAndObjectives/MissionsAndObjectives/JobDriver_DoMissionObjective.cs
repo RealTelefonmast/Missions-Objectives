@@ -36,7 +36,11 @@ namespace MissionsAndObjectives
         {
             get
             {
-                return ObjectiveDef.targets.Find(tv => tv.ThingDef == Station.def).value;
+                if (!ObjectiveDef.targets.NullOrEmpty())
+                {
+                    return ObjectiveDef.targets.Find(tv => tv.ThingDef == Station.def).value;
+                }
+                return 1;
             }
         }
 
