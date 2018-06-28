@@ -9,7 +9,7 @@ using UnityEngine;
 
 namespace MissionsAndObjectives
 {
-    public class Objective : IExposable, IDisposable
+    public class Objective : IExposable
     {
         public ObjectiveDef def;
 
@@ -62,11 +62,14 @@ namespace MissionsAndObjectives
             });
         }
 
-        public void Dispose()
+        public void Reset()
         {
-            this.parent = null;
-            this.def = null;
-            this.thingTracker = null;
+            progress = 0;
+            finishedOnce = false;
+            failedOnce = false;
+            startedOnce = false;
+            this.timer = def.TimerTicks;
+            thingTracker.Reset();
         }
 
         // bool Getters

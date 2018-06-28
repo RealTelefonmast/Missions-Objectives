@@ -13,7 +13,7 @@ namespace MissionsAndObjectives
     {
         public List<Mission> Missions = new List<Mission>();
 
-        public List<MissionDef> FinishedMissions = new List<MissionDef>();
+        public HashSet<ObjectiveDef> StartedObjectives = new HashSet<ObjectiveDef>();
 
         public List<Thing> tempThingList = new List<Thing>();
 
@@ -22,6 +22,10 @@ namespace MissionsAndObjectives
         public ModContentPackWrapper theme;
 
         public bool openedOnce = false;
+
+        public Mission selectedMission;
+
+        public Objective selectedObjective;
 
         public Vector2 missionScrollPos = Vector2.zero;
 
@@ -35,7 +39,7 @@ namespace MissionsAndObjectives
             Scribe_Deep.Look(ref theme, "theme");
             Scribe_Collections.Look(ref ModFolder, "ModFolder");
             Scribe_Collections.Look(ref Missions, "Mission");
-            Scribe_Collections.Look(ref FinishedMissions, "FinishedMissions");
+            Scribe_Collections.Look(ref StartedObjectives, "StartedObjectives");
         }
 
         public WorldComponent_Missions(World world) : base(world)
@@ -101,14 +105,14 @@ namespace MissionsAndObjectives
                 }
                 if (mission.def.IsFinished)
                 {
-                    if (!FinishedMissions.Contains(mission.def))
+                    if (mission.def.hideOnComplete && !mission.def.repeatable)
                     {
-                        FinishedMissions.Add(mission.def);
+                        mission.Kill();
+                        selectedMission = null;
                     }
-                    if (mission.def.hideOnComplete || mission.def.repeatable)
+                    if (mission.def.repeatable)
                     {
-                        Missions.Remove(mission);
-                        mission.Dispose();
+                        mission.Reset();
                     }
                 }
             }

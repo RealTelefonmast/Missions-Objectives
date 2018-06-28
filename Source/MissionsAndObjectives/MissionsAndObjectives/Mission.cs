@@ -7,7 +7,7 @@ using Verse;
 
 namespace MissionsAndObjectives
 {
-    public class Mission : IExposable, IDisposable
+    public class Mission : IExposable
     {
         public MissionDef def;
 
@@ -28,6 +28,10 @@ namespace MissionsAndObjectives
             foreach (ObjectiveDef objective in def.objectives)
             {
                 Objectives.Add(new Objective(objective, this));
+                if (!parent.StartedObjectives.Contains(objective))
+                {
+                    parent.StartedObjectives.Add(objective);
+                }
             }
         }
 
@@ -41,11 +45,18 @@ namespace MissionsAndObjectives
             Scribe_References.Look(ref parent, "parent");
         }
 
-        public void Dispose()
+        public void Kill()
         {
-            this.parent = null;
+            parent.Missions.Remove(this);
             this.def = null;
-            this.Objectives.ForEach(o => o.Dispose());
+            this.parent = null;
+            this.Objectives.Clear();
+        }
+
+        public void Reset()
+        {
+            this.Objectives.ForEach(o => o.Reset());
+            this.seen = false;
         }
 
         public bool Failed

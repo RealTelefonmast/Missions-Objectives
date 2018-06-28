@@ -12,6 +12,8 @@ namespace MissionsAndObjectives
 
         public string boxFailed = "UI/Icons/Failed";
 
+        public string boxRepeat = "UI/Icons/Repeat";
+
         public string bannerTex = "UI/MissionBanner";
 
         public string targetTex = "UI/ObjectiveMarker";

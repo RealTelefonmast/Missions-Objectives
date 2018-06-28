@@ -24,7 +24,9 @@ namespace MissionsAndObjectives
 
         public string raidFaction = "Pirate";
 
-        public PawnsArriveMode arriveMode = PawnsArriveMode.EdgeWalkIn;
+        public PawnsArriveMode raidArriveMode = PawnsArriveMode.EdgeWalkIn;
+
+        public string raidStrategy = "ImmediateAttack";
 
         public float pointMultiplier = 1;
 
@@ -123,6 +125,14 @@ namespace MissionsAndObjectives
             }
         }
 
+        public RaidStrategyDef RaidStrategy
+        {
+            get
+            {
+                return DefDatabase<RaidStrategyDef>.GetNamed(raidStrategy);
+            }
+        }
+
         public IncidentWorker Worker
         {
             get
@@ -154,9 +164,7 @@ namespace MissionsAndObjectives
                 {
                     return parms;
                 }
-                parms.raidStrategy = (from d in DefDatabase<RaidStrategyDef>.AllDefs
-                where d.Worker.CanUseWith(parms)
-                select d).RandomElementByWeight((RaidStrategyDef d) => d.Worker.SelectionChance(map));
+                parms.raidStrategy = RaidStrategy;
             }
             return parms;
         }
@@ -226,7 +234,9 @@ namespace MissionsAndObjectives
                 {
                     IntVec3 center = zone.Cells.RandomElement();
                     SpawnAround(center, map, ref lastThing, "RewardsAppeared".Translate());
+                    return;
                 }
+                DropPodReward(map);
             }
             if(type == IncidentType.RewardAtTarget)
             {
@@ -235,34 +245,7 @@ namespace MissionsAndObjectives
             }
             if(type == IncidentType.RewardDropPod)
             {
-                IntVec3 center = SpawnPosition(filter, map, spawnList);
-                List<List<Thing>> groups = new List<List<Thing>>();                
-                if (!random)
-                {
-                    foreach (ThingValue thingValue in spawnList)
-                    {
-                        List<Thing> thingList = new List<Thing>();
-                        for (int i = 0; i < thingValue.value; i++)
-                        {
-                            thingList.Add(ThingMaker.MakeThing(thingValue.ThingDef));
-                        }
-                        groups.Add(thingList);
-                    }
-                }
-                else
-                {
-                    ThingValue thingValue = spawnList.RandomElement();
-                    List<Thing> thingList = new List<Thing>();
-                    for (int i = 0; i < thingValue.value; i++)
-                    {
-                        thingList.Add(ThingMaker.MakeThing(thingValue.ThingDef));
-                    }
-                    groups.Add(thingList);
-                }
-                DropPodUtility.DropThingGroupsNear(center, map, groups, 140, false, true, true, true);
-                Find.LetterStack.ReceiveLetter("RewardDropPod".Translate(), "RewardDropPodDesc".Translate( new object[] {
-                    ThingDefs
-                }), LetterDefOf.PositiveEvent, new TargetInfo(center, map), null);
+                DropPodReward(map);
             }
             if (type == IncidentType.Raid)
             {
@@ -276,7 +259,7 @@ namespace MissionsAndObjectives
                         pawnList.Add(pawn);
                     }
                 }
-                if (arriveMode == PawnsArriveMode.CenterDrop || arriveMode == PawnsArriveMode.EdgeDrop)
+                if (raidArriveMode == PawnsArriveMode.CenterDrop || raidArriveMode == PawnsArriveMode.EdgeDrop)
                 {
                     DropPodUtility.DropThingsNear(center, map, pawnList.Cast<Thing>(), 140, false, true, true, false);
                     lastThing = new TargetInfo(center, map, false);
@@ -301,9 +284,36 @@ namespace MissionsAndObjectives
             }
         }
 
-        public void DropPodReward()
+        public void DropPodReward(Map map)
         {
-
+            IntVec3 center = SpawnPosition(filter, map, spawnList);
+            List<List<Thing>> groups = new List<List<Thing>>();
+            if (!random)
+            {
+                foreach (ThingValue thingValue in spawnList)
+                {
+                    List<Thing> thingList = new List<Thing>();
+                    for (int i = 0; i < thingValue.value; i++)
+                    {
+                        thingList.Add(ThingMaker.MakeThing(thingValue.ThingDef));
+                    }
+                    groups.Add(thingList);
+                }
+            }
+            else
+            {
+                ThingValue thingValue = spawnList.RandomElement();
+                List<Thing> thingList = new List<Thing>();
+                for (int i = 0; i < thingValue.value; i++)
+                {
+                    thingList.Add(ThingMaker.MakeThing(thingValue.ThingDef));
+                }
+                groups.Add(thingList);
+            }
+            DropPodUtility.DropThingGroupsNear(center, map, groups, 140, false, true, true, true);
+            Find.LetterStack.ReceiveLetter("RewardDropPod".Translate(), "RewardDropPodDesc".Translate(new object[] {
+                    ThingDefs
+                }), LetterDefOf.PositiveEvent, new TargetInfo(center, map), null);
         }
 
         private void SpawnAround(IntVec3 center, Map map, ref TargetInfo lastThing, string message)

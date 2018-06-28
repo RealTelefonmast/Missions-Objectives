@@ -14,10 +14,6 @@ namespace MissionsAndObjectives
     {
         public WorldComponent_Missions MissionHandler;
 
-        private Mission selectedMission;
-
-        private Objective selectedObjective;
-
         private bool tabFlag = true;
 
         //Visual components
@@ -28,6 +24,30 @@ namespace MissionsAndObjectives
 
         private Texture2D backgroundImage;
 
+
+        public Mission SelectedMission
+        {
+            get
+            {
+                return MissionHandler.selectedMission;
+            }
+            set
+            {
+                MissionHandler.selectedMission = value;
+            }
+        }
+
+        public Objective SelectedObjective
+        {
+            get
+            {
+                return MissionHandler.selectedObjective;
+            }
+            set
+            {
+                MissionHandler.selectedObjective = value;
+            }
+        }
 
         public override Vector2 InitialSize
         {
@@ -59,15 +79,15 @@ namespace MissionsAndObjectives
             {
                 MissionHandler.theme = MissionHandler.ModFolder.Find(mcpw => mcpw.MCP.AllDefs.Contains(MCD.MainMissionControlDef));
             }
-            if (selectedMission == null)
+            if (SelectedMission == null)
             {
-                selectedMission = AvailableMissions.FirstOrDefault();
+                SelectedMission = AvailableMissions.FirstOrDefault();
             }
-            if (selectedObjective == null)
+            if (SelectedObjective == null)
             {
-                if (selectedMission != null && !selectedMission.Objectives.NullOrEmpty())
+                if (SelectedMission != null && !SelectedMission.Objectives.NullOrEmpty())
                 {
-                    selectedObjective = selectedMission.Objectives.Where(o => o.Active && !o.Finished).FirstOrDefault();
+                    SelectedObjective = SelectedMission.Objectives.Where(o => o.Active && !o.Finished).FirstOrDefault();
                 }
             }
             MissionHandler.openedOnce = true;
@@ -162,9 +182,9 @@ namespace MissionsAndObjectives
             Rect rightPart = new Rect(leftPartWidth, yOffSet, inRect.width - leftPartWidth, generalHeight).ContractedBy(5f);
 
             DoLefPart(leftPart);
-            if (selectedMission != null)
+            if (SelectedMission != null)
             {
-                DoRightPart(rightPart, selectedMission);
+                DoRightPart(rightPart, SelectedMission);
             }
             Text.Anchor = 0;
         }
@@ -321,6 +341,15 @@ namespace MissionsAndObjectives
         public void DoRightPart(Rect rect, Mission mission)
         {
             Widgets.DrawMenuSection(rect);
+            if(SelectedObjective == null)
+            {
+                Objective temp = SelectedMission.Objectives.FirstOrDefault();
+                if (temp != null)
+                {
+                    SelectedObjective = temp;
+                }
+                else { return; }
+            }
             //Setup Rects
             Rect innerRect = rect.ContractedBy(10f);
             Rect descriptionRect = new Rect(innerRect.x, innerRect.y, innerRect.width / 3f, innerRect.height);
@@ -332,8 +361,8 @@ namespace MissionsAndObjectives
             //Description
             Widgets.DrawMenuSection(descriptionRect);
             StringBuilder description = new StringBuilder();
-            description.AppendLine(selectedMission.def.description + "\n");
-            description.AppendLine(selectedObjective?.def.description);
+            description.AppendLine(SelectedMission.def.description + "\n");
+            description.AppendLine(SelectedObjective?.def.description);
             Text.Anchor = TextAnchor.UpperLeft;
             Widgets.Label(descriptionRect.ContractedBy(5f), description.ToString());
             Text.Anchor = 0;
@@ -344,9 +373,9 @@ namespace MissionsAndObjectives
             Widgets.DrawShadowAround(imageRect);
             Widgets.DrawBoxSolid(imageRect, new Color(0.14f, 0.14f, 0.14f));
 
-            if (selectedObjective != null)
+            if (SelectedObjective != null)
             {
-                SetDiaShow(selectedObjective.def);
+                SetDiaShow(SelectedObjective.def);
                 if (cachedImages.Count > 0 && selectedImage <= (cachedImages.Count - 1) && cachedImages[selectedImage] != null)
                 {
                     Widgets.DrawTextureFitted(imageRect, cachedImages[selectedImage], 1f);
@@ -646,7 +675,7 @@ namespace MissionsAndObjectives
                 Widgets.DrawHighlight(rect);
                 GUI.color = Color.white;
             }
-            if (Mouse.IsOver(rect) || this.selectedObjective == objective)
+            if (Mouse.IsOver(rect) || this.SelectedObjective == objective)
             {
                 GUI.color = Color.yellow;
                 Widgets.DrawHighlight(rect);
@@ -666,7 +695,7 @@ namespace MissionsAndObjectives
                     }
                 }
                 SoundDefOf.Click.PlayOneShotOnCamera(null);
-                this.selectedObjective = objective;
+                this.SelectedObjective = objective;
                 selectedImage = 0;
             }
         }
@@ -675,32 +704,54 @@ namespace MissionsAndObjectives
         {
             MissionHandler.Notify_Seen(mission);
             rect = rect.ContractedBy(3f);
-            if (Mouse.IsOver(rect) || this.selectedMission == mission)
+            if (Mouse.IsOver(rect) || this.SelectedMission == mission)
             {
                 GUI.color = Color.yellow;
                 Widgets.DrawHighlight(rect);
                 GUI.color = Color.white;
             }
             WidgetRow widgetRow = new WidgetRow(rect.x, rect.y + (rect.height - 24f) / 2, UIDirection.RightThenUp, 99999f, 1f);
-            if (mission != null && !mission.def.IsFinished && !mission.Failed)
+            if (mission.def.repeatable)
+            {
+                widgetRow.Icon(ContentFinder<Texture2D>.Get(MCD.boxRepeat, false), null);
+            }
+            else if (mission != null && !mission.def.IsFinished && !mission.Failed)
             {
                 widgetRow.Icon(ContentFinder<Texture2D>.Get(MCD.boxActive, false), null);
             }
-            if (mission.def.IsFinished)
+            else if (!mission.Failed)
             {
                 widgetRow.Icon(ContentFinder<Texture2D>.Get(MCD.boxFinished, false), null);
             }
-            if(mission.Failed)
+            else
             {
                 widgetRow.Icon(ContentFinder<Texture2D>.Get(MCD.boxFailed, false), null);
             }
             widgetRow.Gap(5f);
             widgetRow.Label(mission.def.label, 200f);
+            /*
+            if (!mission.def.repeatable)
+            {
+                float size = 11f;
+                Rect killSwitch = new Rect(rect.xMax - size, rect.y, size, size);
+                Widgets.DrawTextureFitted(killSwitch, MissionMats.close, 1f);
+                if (Mouse.IsOver(killSwitch))
+                {
+                    TooltipHandler.TipRegion(killSwitch, "MissionKill".Translate());
+                    if (Widgets.ButtonInvisible(killSwitch, true))
+                    {
+                        mission.Kill();
+                        SelectedMission = null;
+                        SelectedObjective = null;
+                    }
+                }
+            }
+            */
             if (Widgets.ButtonText(rect, "", false, true, Color.blue, true))
             {
                 SoundDefOf.Click.PlayOneShotOnCamera(null);
-                this.selectedMission = mission;
-                this.selectedObjective = selectedMission.Objectives.FirstOrDefault();
+                this.SelectedMission = mission;
+                this.SelectedObjective = SelectedMission.Objectives.FirstOrDefault();
             }
             if (mission.Failed)
             {

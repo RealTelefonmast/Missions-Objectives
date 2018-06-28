@@ -10,5 +10,7 @@ namespace MissionsAndObjectives
     public class MissionThingDef : ThingDef
     {
         public List<ObjectiveDef> objectivePrerequisites;
+
+        public List<ObjectiveDef> unlockOnObjective;
     }
 }

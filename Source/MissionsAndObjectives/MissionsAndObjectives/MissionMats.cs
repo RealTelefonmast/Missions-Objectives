@@ -10,6 +10,8 @@ namespace MissionsAndObjectives
     {
         public static readonly Texture2D info = ContentFinder<Texture2D>.Get("UI/Icons/info", true);
 
+        public static readonly Texture2D close = ContentFinder<Texture2D>.Get("UI/Icons/Close", true);
+
         //Colors
         public static readonly Texture2D clear = SolidColorMaterials.NewSolidColorTexture(Color.clear);
 

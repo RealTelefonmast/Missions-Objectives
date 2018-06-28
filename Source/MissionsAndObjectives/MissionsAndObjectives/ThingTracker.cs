@@ -80,6 +80,30 @@ namespace MissionsAndObjectives
             Scribe_Collections.Look(ref this.killedThings, "killedThings");
         }
 
+        public void Reset()
+        {
+            foreach (ThingValue tv in targetsToCheck)
+            {
+                ThingDef def = tv.ThingDef;
+                if (type == ObjectiveType.Construct || type == ObjectiveType.Craft)
+                {
+                    madeThings[def] = 0;
+                }
+                if (type == ObjectiveType.Discover)
+                {
+                    discoveredThings[def] = 0;
+                }
+                if (type == ObjectiveType.Destroy)
+                {
+                    destroyedThings[def] = 0; 
+                }
+                if (type == ObjectiveType.Hunt)
+                {
+                    killedThings[tv.PawnKindDef] = 0;
+                }
+            }
+        }
+
         //General
 
         public int GetTargetCount

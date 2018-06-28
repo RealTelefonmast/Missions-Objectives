@@ -25,21 +25,40 @@ namespace MissionsAndObjectives
             MissionsAndObjectives.PatchAll(Assembly.GetExecutingAssembly());
         }
 
+        public static bool CanBeMade(MissionThingDef thingDef, ref bool result)
+        {
+            if (!DebugSettings.godMode)
+            {
+                if (!thingDef.unlockOnObjective.NullOrEmpty())
+                {
+                    if(thingDef.unlockOnObjective.All(Missions.StartedObjectives.Contains))
+                    {
+                        return true;
+                    }
+                    return false;
+                }
+                if (!thingDef.objectivePrerequisites.NullOrEmpty())
+                {
+                    if (thingDef.objectivePrerequisites.Any((ObjectiveDef x) => x.IsFinished))
+                    {
+                        return true;
+                    }
+                    return false;
+                }
+            }
+            return result;
+        }
+
         [HarmonyPatch(typeof(Designator_Build))]
         [HarmonyPatch("Visible", 0)]
         internal static class DesignatorBuild_Patch
         {
             public static void Postfix(Designator_Build __instance, ref bool __result)
             {
-                MissionThingDef thingDef;
-                if ((thingDef = (__instance.PlacingDef as MissionThingDef)) != null && !DebugSettings.godMode && thingDef.objectivePrerequisites != null)
+                MissionThingDef thingDef = __instance.PlacingDef as MissionThingDef;
+                if (thingDef != null)
                 {
-                    if (thingDef.objectivePrerequisites.Any((ObjectiveDef x) => x.IsFinished))
-                    {
-                        __result = true;
-                        return;
-                    }
-                    __result = false;
+                    __result = CanBeMade(thingDef, ref __result);
                 }
             }
         }
@@ -53,15 +72,24 @@ namespace MissionsAndObjectives
                 foreach(ThingCountClass count in __instance.products)
                 {
                     ThingDef def = count.thingDef;
-                    if(def is MissionThingDef && !DebugSettings.godMode && (def as MissionThingDef).objectivePrerequisites != null)
+                    MissionThingDef thingDef = def as MissionThingDef;
+                    if (thingDef != null)
                     {
-                        if ((def as MissionThingDef).objectivePrerequisites.Any((ObjectiveDef x) => x.IsFinished))
-                        {
-                            __result = true;
-                            return;
-                        }
-                        __result = false;
+                        __result = CanBeMade(thingDef, ref __result);
                     }
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(Command_SetPlantToGrow))]
+        [HarmonyPatch("IsPlantAvailable")]
+        internal static class Grow_Patch
+        {
+            public static void Postfix(ThingDef plantDef, ref bool __result)
+            {
+                if (plantDef is MissionThingDef)
+                {
+                   __result = CanBeMade(plantDef as MissionThingDef, ref __result);
                 }
             }
         }
@@ -114,7 +142,6 @@ namespace MissionsAndObjectives
                 return Find.World.GetComponent<WorldComponent_Missions>(); 
             }
         }
-
         
         [HarmonyPatch(typeof(Frame))]
         [HarmonyPatch("CompleteConstruction")]
@@ -122,7 +149,10 @@ namespace MissionsAndObjectives
         {
             public static void Postfix(Frame __instance)
             {
-                Missions.Missions.ForEach(m => m.Objectives.Where(o => o.Active && !o.Finished).ToList().ForEach(o => o.thingTracker.Make(__instance.def.entityDefToBuild as ThingDef, __instance.Position, __instance.Map)));
+                if ((__instance.def.entityDefToBuild as TerrainDef) == null)
+                {
+                    Missions.Missions.ForEach(m => m.Objectives.Where(o => o.Active && !o.Finished).ToList().ForEach(o => o.thingTracker.Make(__instance.def.entityDefToBuild as ThingDef, __instance.Position, __instance.Map)));
+                }
             }
         }
 

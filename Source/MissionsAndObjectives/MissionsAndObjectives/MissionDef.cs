@@ -15,6 +15,8 @@ namespace MissionsAndObjectives
 
         public List<ObjectiveDef> objectives = new List<ObjectiveDef>();
 
+        public string modIdentifier;
+
         public bool hideOnComplete = false;
 
         public bool repeatable = false;
@@ -39,6 +41,22 @@ namespace MissionsAndObjectives
             }
         }
 
+        public bool ModBound
+        {
+            get
+            {
+                return modIdentifier != null;
+            }
+        }
+
+        public bool ModLoaded
+        {
+            get
+            {
+                return LoadedModManager.RunningMods.Any(mcp => mcp.Identifier == modIdentifier);
+            }
+        }
+
         public bool IsFinished
         {
             get
@@ -48,14 +66,6 @@ namespace MissionsAndObjectives
                     return Find.World.GetComponent<WorldComponent_Missions>().Missions.Find(m => m.def == this).Objectives.All(o => o.Finished);
                 }
                 return false;
-            }
-        }
-
-        public bool AlreadyDone
-        {
-            get
-            {
-                return WorldComponent_Missions.MissionHandler.FinishedMissions.Any(m => m == this);
             }
         }
 
@@ -100,9 +110,9 @@ namespace MissionsAndObjectives
         {
             get
             {
-                if (!repeatable)
+                if (ModBound)
                 {
-                    return this.PrerequisitesCompleted && !AlreadyDone;
+                    return this.PrerequisitesCompleted && ModLoaded;
                 }
                 return this.PrerequisitesCompleted;
             }
