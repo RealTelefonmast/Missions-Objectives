@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using RimWorld;
 using Verse;
+using System.Text.RegularExpressions;
 
 namespace MissionsAndObjectives
 {
@@ -41,6 +42,14 @@ namespace MissionsAndObjectives
             }
         }
 
+        public string ModIdentifier
+        {
+            get
+            {
+                return Regex.Replace(modIdentifier, @"\s+", "");
+            }
+        }
+
         public bool ModBound
         {
             get
@@ -53,7 +62,7 @@ namespace MissionsAndObjectives
         {
             get
             {
-                return LoadedModManager.RunningMods.Any(mcp => mcp.Identifier == modIdentifier);
+                return LoadedModManager.RunningMods.Any(mcp => mcp.Identifier == ModIdentifier);
             }
         }
 
