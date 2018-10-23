@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+		
+	<StoryFramework.StoryControlDef>
+		<defName>RWTutorial</defName>
+		<label>RimWorld Tutorial</label>
+		<color>(133,85,44)</color>
+		<borderColor>(176,139,61)</borderColor>
+	</StoryFramework.StoryControlDef>
+	
+</Defs>

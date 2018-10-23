@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+		
+	<StoryFramework.ObjectiveDef>
+		<defName>MechanoidHunt</defName>
+		<label>Get mechanoid samples.</label>
+		<description>As you play, you will encounter three main types of mechanoids, the Centipedes, Scythers and Lancers.\nKill one of each.</description>
+		<customSettings>
+			<shortLabel>Kill one of each mechanoid type.</shortLabel>
+		</customSettings>
+		<type>Kill</type>
+		<targetSettings>
+			<targets>
+				<li>Mech_Centipede</li>
+				<li>Mech_Lancer</li>
+				<li>Mech_Scyther</li>
+			</targets>
+		</targetSettings>
+	</StoryFramework.ObjectiveDef>
+	
+	<StoryFramework.ObjectiveDef>
+		<defName>QualityMatters</defName>
+		<label>Craft better than good quality items!</label>
+		<description></description>
+		<type>ConstructOrCraft</type>
+		<targetSettings>
+			<thingSettings>
+				<minQuality>Poor</minQuality>
+			</thingSettings>		
+		</targetSettings>
+		<result>
+			<type>Reward</type>
+			<spawnSettings>
+				<spawnList>
+					<li>Silver,50</li>
+				</spawnList>
+			</spawnSettings>
+		</result>
+	</StoryFramework.ObjectiveDef>
+	
+	<StoryFramework.ObjectiveDef>
+		<defName>PawnsMatter</defName>
+		<label>Have some specific pawns!</label>
+		<description></description>
+		<type>PawnCheck</type>
+		<targetSettings>
+			<pawnSettings>
+				<minAmount>5</minAmount>
+				<def>Human</def>
+				<kindDef>Town_Guard</kindDef>
+				<gender>Female</gender>
+			</pawnSettings>		
+		</targetSettings>
+		<result>
+			<type>Reward</type>
+			<spawnSettings>
+				<spawnList>
+					<li>Silver,50</li>
+				</spawnList>
+			</spawnSettings>
+		</result>
+	</StoryFramework.ObjectiveDef>
+	
+	<StoryFramework.ObjectiveDef>
+		<defName>PowerSourceEarly</defName>
+		<label>Get a power source!</label>
+		<description>First we need a power source. RimWorld offers multiple ones, Wood and Chemfuel generators, Solar and Geothermal generators or even a watermill generator if you have a river on your map!\nHowever we only have access to the wood and chemfuel generators currently, build two of either one.</description> <!--probably looks weird but idc, so this is quite fun to do, a bit of work, lots of debugging and especially testing, oh boy, there is still the logic to go new line, oof, big oof, big mood, hope this is enough, but it might not be so here is some more, and more. is it enough yet? Hmmm.. :thonk: maybe. NEW LINE EVERYOBY - everyoby? geez I am tired.</description> -->
+		<type>ConstructOrCraft</type>
+		<targetSettings>
+			<any>true</any>
+			<targets>
+				<li>WoodFiredGenerator,2</li>
+				<li>ChemfuelPoweredGenerator,2</li>
+				<li>WindTurbine</li>
+			</targets>
+		</targetSettings>
+		<images>
+			<li>PowerSetup/Generators/generators</li>
+			<li>PowerSetup/Generators/battery</li>
+			<li>PowerSetup/Generators/solar</li>
+		</images>
+	</StoryFramework.ObjectiveDef>
+	
+	<StoryFramework.ObjectiveDef>
+		<defName>BatteryBakery</defName>
+		<label>Research batteries.</label>
+		<description>Now with a power source, we need some place to get all that excess energy stored.\nBatteries!\nBatteries will store any extra energy produced for later use, so in-case you have a power outtage, no worries! Batteries will save the day, but we don't know how to build one yet...</description> 
+		<type>Research</type>
+		<workAmount>400</workAmount>
+		<skillRequirements>
+			<Intellectual>5</Intellectual>
+		</skillRequirements>
+		<targetSettings>
+			<any>true</any>
+			<targets>
+				<li>SimpleResearchBench</li>
+				<li>HiTechResearchBench</li>
+			</targets>
+		</targetSettings>
+		<images>
+			<li>PowerSetup/Generators/battery</li>
+		</images>
+	</StoryFramework.ObjectiveDef>
+	
+	<StoryFramework.ObjectiveDef>
+		<defName>BatteryBuilding</defName>
+		<label>Store the Power!</label>
+		<description>You have received some resources to build a few batteries, you won't receive any more though!</description> 
+		<type>ConstructOrCraft</type>
+		<targetSettings>
+			<targets>
+				<li>Battery,4</li>
+			</targets>
+		</targetSettings>
+		<incidentsOnStart>
+			<li>
+				<type>Reward</type>
+				<spawnSettings>
+					<spawnList>
+						<li>Steel,280</li>
+						<li>ComponentIndustrial,8</li>
+					</spawnList>
+				</spawnSettings>
+			</li>
+			<li>
+				<type>Research</type>
+				<researchUnlocks>
+					<li>Batteries</li>
+				</researchUnlocks>
+			</li>
+		</incidentsOnStart>
+		<images>
+			<li>PowerSetup/Generators/battery</li>
+		</images>
+	</StoryFramework.ObjectiveDef>
+	
+	<StoryFramework.ObjectiveDef>
+		<defName>SolarEnergyResearch</defName>
+		<label>Research solar panels.</label>
+		<description>While fueled generators have a decent steady output, specialized generators produce a good amount of energy when certain conditions apply. Like solar panels! Solar panels produce energy during the day, and stop working at night.\nTime to find out how it works!</description> 
+		<type>Research</type>
+		<workAmount>600</workAmount>
+		<targetSettings>
+			<any>true</any>
+			<targets>
+				<li>SimpleResearchBench</li>
+				<li>HiTechResearchBench</li>
+			</targets>
+		</targetSettings>
+		<result>
+			<type>Research</type>
+			<researchUnlocks>
+				<li>SolarPanels</li>
+			</researchUnlocks>
+		</result>
+		<images>
+			<li>PowerSetup/Generators/solar</li>
+		</images>
+	</StoryFramework.ObjectiveDef>
+	
+	<StoryFramework.ObjectiveDef>
+		<defName>SolarEnergyConstruction</defName>
+		<label>Harvest the sun!</label>
+		<description>Now that we know how to make solar panels out of some steal and some old component, it is time to do so!</description> 
+		<type>ConstructOrCraft</type>
+		<targetSettings>
+			<targets>
+				<li>SolarGenerator,1</li>
+			</targets>
+		</targetSettings>
+		<images>
+			<li>PowerSetup/Generators/solar</li>
+		</images>
+	</StoryFramework.ObjectiveDef>
+	
+	<StoryFramework.ObjectiveDef>
+		<defName>GeothermalResearch</defName>
+		<label>Research geothermal generators.</label>
+		<description>Time to get some more advanced energy sources! A geothermal generator may only be placed on steam geysers, however it will create a steady amount of energy.</description> 
+		<type>Research</type>
+		<workAmount>3200</workAmount>
+		<targetSettings>
+			<any>true</any>
+			<targets>
+				<li>SimpleResearchBench</li>
+				<li>HiTechResearchBench</li>
+			</targets>
+		</targetSettings>
+		<result>
+			<type>Research</type>
+			<researchUnlocks>
+				<li>GeothermalPower</li>
+			</researchUnlocks>
+		</result>
+		<images>
+			<li>PowerSetup/Generators/geo</li>
+		</images>
+	</StoryFramework.ObjectiveDef>
+	
+	<StoryFramework.ObjectiveDef>
+		<defName>GeothermalConstruction</defName>
+		<label>Hellish energy.</label>
+		<description>Seek a steam geyser and build a geothermal generator ontop of it.</description> 
+		<type>ConstructOrCraft</type>
+		<targetSettings>
+			<targets>
+				<li>GeothermalGenerator,1</li>
+			</targets>
+		</targetSettings>
+		<images>
+			<li>PowerSetup/Generators/geo</li>
+		</images>
+	</StoryFramework.ObjectiveDef>
+	
+</Defs>

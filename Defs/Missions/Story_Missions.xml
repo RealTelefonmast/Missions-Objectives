@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+	
+	<StoryFramework.MissionDef>
+		<defName>ElectricitySetup</defName>
+		<label>Power Setup</label>
+		<description>Your first colony will need electricity to survive. With electricity it will be way easier to deal with natural conditions such as heat and cold, power your coolers to store food and turrets to survive attacks.</description>
+		<chronological>true</chronological>
+		<objectives>
+			<li>PowerSourceEarly</li>
+			<li>BatteryBakery</li>
+			<li>BatteryBuilding</li>
+			<li>SolarEnergyResearch</li>
+			<li>SolarEnergyConstruction</li>
+			<li>GeothermalResearch</li>
+			<li>GeothermalConstruction</li>
+		</objectives>
+	</StoryFramework.MissionDef>
+	
+	<StoryFramework.MissionDef>
+		<defName>ArmorySetup</defName>
+		<label>Armed and Ready</label>
+		<description>Now with a steady power input and storage, we can also take care of some defensive measures...</description>
+		<requisites>
+			<missions>
+				<li>ElectricitySetup</li>
+			</missions>
+		</requisites>
+		<chronological>true</chronological>
+	</StoryFramework.MissionDef>
+	
+	<StoryFramework.MissionDef>
+		<defName>SpecialMission1</defName>
+		<label>Special: Mechanoids</label>
+		<description>You might've met them, if not you probably will soon enough.\nMECHANOIDS!\nMechanoids will haunt your dreams whether you like it or not. These ancient mechanical creature are scattered all over this RimWorld and can be found inside Ancient Dangers or encountered as a raid on your base.</description>
+		<objectives>
+			<li>MechanoidHunt</li>
+		</objectives>		
+	</StoryFramework.MissionDef>
+	
+	<StoryFramework.MissionDef>
+		<defName>SpecialMission2</defName>
+		<label>Special: Quality Matters</label>
+		<description>Time to make weapons! Foreach weapon with a quality better than "good" you receive a small amount of silver!</description>
+		<repeatable>true</repeatable>
+		<objectives>
+			<li>QualityMatters</li>
+			<li>PawnsMatter</li>
+		</objectives>
+	</StoryFramework.MissionDef>
+	
+</Defs>
