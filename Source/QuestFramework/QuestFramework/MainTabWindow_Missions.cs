@@ -878,7 +878,10 @@ namespace StoryFramework
                 int count = 0;
                 if (cachedPawns.TryGetValue(objective.def, out List<Pawn> pawns))
                 {
-                    count = pawns.Count;
+                    if (!pawns.NullOrEmpty())
+                    {
+                        count = pawns.Count;
+                    }
                 }
                 Widgets.Label(SkillRequirementRect, count.ToString());
                 Text.Font = GameFont.Tiny;
@@ -909,9 +912,13 @@ namespace StoryFramework
             bool mouseOnSkill = Mouse.IsOver(SkillRequirementRect);
             if (mouseOnSkill)
             {
-                foreach(Pawn pawn in cachedPawns.TryGetValue(objective.def))
+                List<Pawn> pawns = cachedPawns.TryGetValue(objective.def);
+                foreach (Pawn pawn in pawns)
                 {
-                    TargetHighlighter.Highlight(pawn, false, true, false);
+                    if (pawn != null)
+                    {
+                        TargetHighlighter.Highlight(pawn, false, true, false);
+                    }
                 }
             }
             if (Widgets.ButtonInvisible(TabRect, true))
