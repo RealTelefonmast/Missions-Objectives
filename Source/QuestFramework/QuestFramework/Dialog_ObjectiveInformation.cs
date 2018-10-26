@@ -105,7 +105,7 @@ namespace StoryFramework
 
                 if (mode == TravelMode.Reach || mode == TravelMode.Explore)
                 {
-                    float height = 4f * 23f;
+                    float height = 4f * 25f;
                     BoxRect = new Rect(0f, CurrentY, MainInfoSub.width, height);
                     Widgets.DrawBoxSolid(BoxRect, new ColorInt(33, 33, 33).ToColor);
                     CurrentY += ModeLabelHeight + 5f;
