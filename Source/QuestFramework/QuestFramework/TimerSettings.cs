@@ -8,6 +8,7 @@ namespace StoryFramework
     {
         public int ticks = 0;
         public float days = 0;
+        public bool continueWhenFinished = false;
         //Experimental - Not Used
         public bool critical = false;
 

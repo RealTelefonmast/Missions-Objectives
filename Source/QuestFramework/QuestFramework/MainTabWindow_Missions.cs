@@ -856,7 +856,7 @@ namespace StoryFramework
             }
             if (objective.def.timer.GetTotalTime > 0)
             {
-                BotBarRect = new Rect(new Vector2(TabRect.xMax - (size.x + 5f), TabRect.yMax - (size.y + 5f)), size);
+                BotBarRect = new Rect(new Vector2(TabRect.xMax - (size.x + 5f), TabRect.height - (size.y + 5f)), size);
                 float timer = objective.GetTimer;
                 pct = timer / objective.def.timer.GetTotalTime;
                 label = StoryUtils.GetTimerText(objective.GetTimer, objective.CurrentState);

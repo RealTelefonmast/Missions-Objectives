@@ -46,7 +46,7 @@ namespace StoryFramework
             Scribe_Collections.Look<Thing, int>(ref CurrentlyOwnedTargets, "TempOwned", LookMode.Deep, LookMode.Value);
             Scribe_Collections.Look(ref trackedPawns, "trackedPawns", LookMode.Value);
             Scribe_TargetInfo.Look(ref LastTarget, "lastTarget");
-            if (Scribe.mode == LoadSaveMode.PostLoadInit)
+            if (Scribe.mode == LoadSaveMode.LoadingVars)
             {
                 for (int i = 0; i < targetSettings.targets.Count; i++)
                 {

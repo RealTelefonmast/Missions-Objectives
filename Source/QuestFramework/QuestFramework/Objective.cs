@@ -214,6 +214,13 @@ namespace StoryFramework
         {
             get
             {
+                if (def.timer.GetTotalTime > 0 && def.timer.continueWhenFinished)
+                {
+                    if(timer > 0)
+                    {
+                        return false;
+                    }
+                }
                 if (finishedOnce || parentMission.LatestState == MOState.Finished)
                 {
                     return true;
