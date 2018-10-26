@@ -4,7 +4,12 @@
     <version>0.2.0.1</version>
     <loadAfter>
         <li>Core</li>
+	    <li>ModManager</li>
     </loadAfter>
-    <manifestUri>https://github.com/RealTelefonmast/Missions-Objectives/tree/master/About/Manifest.xml</manifestUri>
+	<suggests>
+		<li>TiberiumRim</li>
+	</suggests>
+	<showCrossPromotions>true</showCrossPromotions>
+    <manifestUri>https://github.com/RealTelefonmast/Missions-Objectives/master/About/Manifest.xml</manifestUri>
     <downloadUri>https://github.com/RealTelefonmast/Missions-Objectives/releases/latest</downloadUri>
 </Manifest>
