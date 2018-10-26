@@ -88,7 +88,7 @@ namespace StoryFramework
         public void Notify_Change()
         {
             LatestState = CurrentState;
-            if(LatestState == MOState.Finished)
+            if(LatestState == MOState.Finished && def.repeatable)
             {
                 Reset();
             }

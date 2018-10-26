@@ -72,7 +72,7 @@ namespace StoryFramework
 
         public void ObjectiveTick()
         {
-            if (LatestState != MOState.Finished)
+            if (LatestState != MOState.Finished || LatestState != MOState.Failed)
             {
                 if (Active)
                 {
@@ -113,10 +113,12 @@ namespace StoryFramework
                 if (ObjectiveComplete)
                 {
                     Notify_Finish();
+                    return;
                 }
                 if (ObjectiveFailed)
                 {
                     Notify_Fail();
+                    return;
                 }
                 LatestState = CurrentState;
             }
@@ -252,6 +254,10 @@ namespace StoryFramework
         {
             get
             {
+                if (finishedOnce)
+                {
+                    return false;
+                }
                 if(failedOnce || parentMission.LatestState == MOState.Failed || (def.requisites?.Impossible ?? false))
                 {
                     return true;
