@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Defs>
 		
-	<Def Name="MissionBase" Abstract="True" Class="MissionsAndObjectives.MissionDef">	
+	<Def Name="MissionBase" Abstract="True" Class="StoryFramework.MissionDef">	
 	</Def>
 		
-	<Def Name="ObjectiveBase" Abstract="True" Class="MissionsAndObjectives.ObjectiveDef">	
+	<Def Name="ObjectiveBase" Abstract="True" Class="StoryFramework.ObjectiveDef">	
 	</Def>
 	
-	
+	<ScenPartDef>
+		<defName>ScenPartStory</defName>
+		<label>story mission setup</label>
+		<category>StartingImportant</category>
+		<scenPartClass>StoryFramework.ScenPart_Story</scenPartClass>		
+	</ScenPartDef>
 	
 </Defs>

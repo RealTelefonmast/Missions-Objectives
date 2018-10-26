@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2047
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuestFramework", "QuestFramework\QuestFramework.csproj", "{6BECB5D6-286A-4BD3-836B-7764A12D2088}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6BECB5D6-286A-4BD3-836B-7764A12D2088}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6BECB5D6-286A-4BD3-836B-7764A12D2088}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6BECB5D6-286A-4BD3-836B-7764A12D2088}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6BECB5D6-286A-4BD3-836B-7764A12D2088}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {9DF9A4C8-8EBE-45A5-B2E3-089818B84FEF}
+	EndGlobalSection
+EndGlobal

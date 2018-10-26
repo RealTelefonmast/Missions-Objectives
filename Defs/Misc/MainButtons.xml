@@ -2,10 +2,10 @@
 <Defs>
 
   <MainButtonDef>
-    <defName>MissionObjectives</defName>
+    <defName>StoryTab</defName>
     <label>Missions</label>
-    <description>Check out your recent objectives and missions.</description>
-    <tabWindowClass>MissionsAndObjectives.MainTabWindow_MissionObjectives</tabWindowClass>
+    <description>Check out your recent missions and objectives.</description>
+    <tabWindowClass>StoryFramework.MainTabWindow_Missions</tabWindowClass>
     <order>51</order>
   </MainButtonDef>
 

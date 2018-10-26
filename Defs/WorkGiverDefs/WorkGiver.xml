@@ -3,12 +3,12 @@
 
 	<WorkGiverDef>
 		<defName>DoMissionObjective</defName>
-		<label>Pursue a objective.</label>
-		<giverClass>MissionsAndObjectives.WorkGiver_DoMissionObjective</giverClass>
+		<label>Pursue an objective.</label>
+		<giverClass>StoryFramework.WorkGiver_Objective</giverClass>
 		<workType>DoObjectives</workType>
 		<priorityInType>97</priorityInType>
-		<verb>pursue a objective at</verb>
-		<gerund>pursuing a objective at</gerund>
+		<verb>pursue an objective at</verb>
+		<gerund>pursuing an objective at</gerund>
 		<requiredCapacities>
 			<li>Manipulation</li>
 		</requiredCapacities>
@@ -21,7 +21,7 @@
 		<pawnLabel>pursue objective</pawnLabel>
 		<gerundLabel>pursuing objective</gerundLabel>
 		<description>Work on any currently available objectives.</description>
-		<verb>pursue a objective</verb>
+		<verb>pursue an objective</verb>
 		<visible>true</visible>
 		<alwaysStartActive>true</alwaysStartActive>
 		<naturalPriority>99</naturalPriority>

@@ -1,0 +1,10 @@
+E:\Steam\steamapps\common\RimWorld\Mods\QuestFramework\Source\QuestFramework\QuestFramework\obj\Debug\QuestFramework.csproj.CoreCompileInputs.cache
+E:\Steam\steamapps\common\RimWorld\Mods\QuestFramework\Source\QuestFramework\QuestFramework\obj\Debug\QuestFramework.csproj.CopyComplete
+E:\Steam\steamapps\common\RimWorld\Mods\QuestFramework\Assemblies\StoryFramework.dll
+E:\Steam\steamapps\common\RimWorld\Mods\QuestFramework\Source\QuestFramework\QuestFramework\obj\Debug\StoryFramework.dll
+E:\Steam\steamapps\common\RimWorld\Mods\QuestFramework\Source\QuestFramework\QuestFramework\obj\Debug\QuestFramework.csprojAssemblyReference.cache
+C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\QuestFramework\Source\QuestFramework\QuestFramework\obj\Debug\QuestFramework.csproj.CoreCompileInputs.cache
+C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\QuestFramework\Source\QuestFramework\QuestFramework\obj\Debug\StoryFramework.dll
+C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\QuestFramework\Assemblies\StoryFramework.dll
+C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\QuestFramework\Source\QuestFramework\QuestFramework\obj\Debug\QuestFramework.csproj.CopyComplete
+C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\QuestFramework\Source\QuestFramework\QuestFramework\obj\Debug\QuestFramework.csprojAssemblyReference.cache

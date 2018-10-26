@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ModMetaData>
-    <name>Stories, Missions and Objectives</name>
-	<targetVersion>0.18.0</targetVersion>
+    <name>Story Framework</name>
+	<targetVersion>1.0.0</targetVersion>
     <author>Telefonmast</author>
     <description>
 	This framework allows modders to create custom complex storylines purely in xml.

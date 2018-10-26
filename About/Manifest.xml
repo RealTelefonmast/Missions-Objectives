@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Manifest>
+    <identifier>StoryFramework</identifier>
+    <version>0.1.0.0</version>
+    <loadAfter>
+        <li>Core</li>
+    </loadAfter>
+    <manifestUri>https://github.com/RealTelefonmast/Missions-Objectives/tree/master/About/Manifest.xml</manifestUri>
+    <downloadUri>https://github.com/RealTelefonmast/Missions-Objectives/releases/latest</downloadUri>
+</Manifest>
