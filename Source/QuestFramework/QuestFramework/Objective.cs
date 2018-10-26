@@ -19,7 +19,6 @@ namespace StoryFramework
         private bool failedOnce = false;
         private float workDone = 0;
         private int timer = -1;
-        private MOState LatestState;
         public TargetInfo lastTarget;
 
         public Objective(){}
@@ -41,7 +40,6 @@ namespace StoryFramework
             {
                 travelTracker = new TravelTracker(def.travelSettings);
             }
-            LatestState = CurrentState;
         }
 
         public void ExposeData()
@@ -61,7 +59,6 @@ namespace StoryFramework
             Scribe_Values.Look(ref failedOnce, "failedOnce");
             Scribe_Values.Look(ref workDone, "workDone");
             Scribe_Values.Look(ref timer, "timer");
-            Scribe_Values.Look(ref LatestState, "latestState");
             Scribe_TargetInfo.Look(ref lastTarget, "lastTarget");
         }
 
@@ -72,12 +69,9 @@ namespace StoryFramework
 
         public void ObjectiveTick()
         {
-            if (LatestState != MOState.Finished || LatestState != MOState.Failed)
+            if (CurrentState == MOState.Active)
             {
-                if (Active)
-                {
-                    Notify_Start();
-                }
+                Notify_Start();
                 if (timer > 0)
                 {
                     timer -= 1;
@@ -120,7 +114,6 @@ namespace StoryFramework
                     Notify_Fail();
                     return;
                 }
-                LatestState = CurrentState;
             }
         }
 
