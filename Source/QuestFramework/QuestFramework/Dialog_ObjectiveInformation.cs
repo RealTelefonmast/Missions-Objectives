@@ -253,6 +253,7 @@ namespace StoryFramework
                     Rect BoxRect = new Rect(0f, CurrentY, MainInfoSub.width, TargetDescHeight + 10f);
                     Rect TargetDescRect = BoxRect.ContractedBy(5f);
                     ContainerRect.y += BoxRect.height + 5f;
+                    CurrentY += BoxRect.height + 5f;
                     if (TotalHeight > ContainerSplit)
                     {
                         ContainerRect.height -= BoxRect.height + 5f;
