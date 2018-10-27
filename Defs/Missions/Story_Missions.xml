@@ -4,7 +4,7 @@
 	<StoryFramework.MissionDef>
 		<defName>WaitItOut</defName>
 		<label>Wait it out</label>
-		<description>This mission is timed, meaning that it will fail once the timer runs out.</description>
+		<description>This mission is timed, meaning that it will fail once the timer runs out. While you wait, you can look at the image viewer and check out some screenshots!</description>
 		<timer>
 			<days>4</days>
 		</timer>
@@ -65,6 +65,12 @@
 				</spawnList>
 			</spawnSettings>
 		</result>
+		<images>
+			<li>waiting</li>
+			<li>screenshot/screenshot1</li>
+			<li>screenshot/screenshot2</li>
+			<li>screenshot/screenshot3</li>
+		</images>
 	</StoryFramework.ObjectiveDef>
 	
 	<StoryFramework.MissionDef>
@@ -113,6 +119,9 @@
 				</spawnList>
 			</spawnSettings>
 		</result>
+		<images>
+			<li>Chunks</li>
+		</images>
 	</StoryFramework.ObjectiveDef>
 	
 	<StoryFramework.ObjectiveDef>
@@ -142,12 +151,16 @@
 				</spawnList>
 			</spawnSettings>
 		</result>
+        <images>
+		    <li>refugee</li>
+			<li>recruit</li>
+		</images>
 	</StoryFramework.ObjectiveDef>
 	
 	<StoryFramework.ObjectiveDef>
 		<defName>SpecialResearch</defName>
 		<label>Research Breakthrough: Turrets</label>
-		<description>Oh no! A big raid is incoming and we need to get our defences up, hurry up and send all your distressed pawns to research stations!</description>
+		<description>Oh no! A big raid is incoming and we need to get our defenses up, hurry up and send all your distressed pawns to research stations!</description>
 		<type>Research</type>
 		<workAmount>400</workAmount>
 		<skillRequirements>
@@ -191,6 +204,9 @@
 				</spawnSettings>
 			</li>
 		</incidentsOnCompletion>	
+		<images>
+			<li>research</li>
+		</images>
 	</StoryFramework.ObjectiveDef>
 	
 	<StoryFramework.ObjectiveDef>
@@ -217,6 +233,9 @@
 				</spawnList>
 			</spawnSettings>
 		</result>
+		<images>
+			<li>Defense</li>
+		</images>
 	</StoryFramework.ObjectiveDef>
 	
 	<StoryFramework.ObjectiveDef>
@@ -230,6 +249,9 @@
 				<li>WildMan,8</li>
 			</targets>
 		</targetSettings>
+		<images>
+			<li>raid</li>
+		</images>
 	</StoryFramework.ObjectiveDef>
 	
 	<StoryFramework.ObjectiveDef>
@@ -306,6 +328,9 @@
 				<hilliness>LargeHills</hilliness>
 			</tileSettings>
 		</travelSettings>
+		<images>
+			<li>travelsomewhere</li>
+		</images>
 	</StoryFramework.ObjectiveDef>
 	
 	
