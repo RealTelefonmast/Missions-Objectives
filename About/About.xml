@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ModMetaData>
-    <name>Story Framework</name>
+    <name>Story Framework Showcase</name>
 	<targetVersion>1.0.0</targetVersion>
     <author>Telefonmast</author>
     <description>
-	This framework allows modders to create custom complex storylines purely in xml.
-	Visit the github wiki to find out how to create your own custom mod with this.
+		Showcasing all the features of the framework!
 	</description>
 </ModMetaData>
