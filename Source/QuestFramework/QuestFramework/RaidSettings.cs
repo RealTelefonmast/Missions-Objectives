@@ -14,7 +14,6 @@ namespace StoryFramework
         public FactionDef faction;
         public PawnsArrivalModeDef arriveMode;
         public RaidStrategyDef strategy;
-        public bool forceHostile = false;
         public bool canKidnap = true;
         public bool canLeave = true;
         public bool sappers = false;

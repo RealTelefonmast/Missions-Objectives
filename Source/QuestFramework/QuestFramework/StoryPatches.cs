@@ -149,7 +149,7 @@ namespace StoryFramework
         }
 
         [HarmonyPatch(typeof(Designator_Build))]
-        [HarmonyPatch("Visible", 0)]
+        [HarmonyPatch("Visible", MethodType.Getter)]
         internal static class DesignatorBuild_Patch
         {
             public static void Postfix(Designator_Build __instance, ref bool __result)
@@ -163,7 +163,7 @@ namespace StoryFramework
         }
 
         [HarmonyPatch(typeof(RecipeDef))]
-        [HarmonyPatch("AvailableNow", 0)]
+        [HarmonyPatch("AvailableNow", MethodType.Getter)]
         internal static class RecipeDef_Patch
         {
             public static void Postfix(RecipeDef __instance, ref bool __result)
