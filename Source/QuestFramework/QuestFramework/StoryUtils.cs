@@ -11,6 +11,31 @@ namespace StoryFramework
     [StaticConstructorOnStartup]
     public static class StoryUtils
     {
+        public static List<ThingDef> ThingDefs(this List<ThingSkyfaller> skyfallers)
+        {
+            List<ThingDef> defs = new List<ThingDef>();
+            foreach(ThingSkyfaller skyfaller in skyfallers)
+            {
+                defs.Add(skyfaller.innerThing);
+            }
+            return defs;
+        }
+
+        public static bool ThingFitsAt(this ThingDef thing, Map map, IntVec3 cell)
+        {
+            CellRect.CellRectIterator iterator = GenAdj.OccupiedRect(cell, Rot4.North, thing.size).GetIterator();
+            while (!iterator.Done())
+            {
+                IntVec3 c = iterator.Current;
+                if (!c.InBounds(map) || c.Fogged(map) || !c.Standable(map) || (c.Roofed(map) && c.GetRoof(map).isThickRoof))
+                {
+                    return false;
+                }
+                iterator.MoveNext();
+            }
+            return true;
+        }
+
         public static List<Thing> AllThings(this IEnumerable<IntVec3> list, Map map)
         {
             List<Thing> things = new List<Thing>();
@@ -68,7 +93,19 @@ namespace StoryFramework
             return null;
         }
 
-        public static ObjectiveStation Station(this List<ObjectiveStation> list, Objective objective = null, Thing thing = null)
+        public static ObjectiveStation Station(this List<ObjectiveStation> list, ThingDef thingDef)
+        {
+            foreach (ObjectiveStation station in list)
+            {
+                if (station.station.def == thingDef)
+                {
+                    return station;
+                }
+            }
+            return null;
+        }
+
+        public static ObjectiveStation Station(this List<ObjectiveStation> list, ObjectiveDef objective = null, Thing thing = null)
         {
             foreach (ObjectiveStation station in list)
             {
@@ -80,19 +117,7 @@ namespace StoryFramework
             return null;
         }
 
-        public static Thing StationThing(this List<ObjectiveStation> list, Objective objective)
-        {
-            foreach (ObjectiveStation station in list)
-            {
-                if (station.objectives.Contains(objective))
-                {
-                    return station.station;
-                }
-            }
-            return null;
-        }
-
-        public static List<Objective> StationObjectives(this List<ObjectiveStation> list, Thing thing)
+        public static List<ObjectiveDef> StationObjectives(this List<ObjectiveStation> list, Thing thing)
         {
             if (!list.NullOrEmpty())
             {
@@ -104,7 +129,7 @@ namespace StoryFramework
                     }
                 }
             }
-            return new List<Objective>();
+            return new List<ObjectiveDef>();
         }
 
         public static List<Thing> Stations(this List<ObjectiveStation> list)
@@ -117,14 +142,14 @@ namespace StoryFramework
             return things;
         }
 
-        public static List<Objective> Objectives(this List<ObjectiveStation> list)
+        public static List<ObjectiveDef> Objectives(this List<ObjectiveStation> list)
         {
-            List<Objective> things = new List<Objective>();
+            List<ObjectiveDef> objectives = new List<ObjectiveDef>();
             foreach (ObjectiveStation station in list)
             {
-                things.AddRange(station.objectives);
+                objectives.AddRange(station.objectives);
             }
-            return things;
+            return objectives;
         }
 
         public static List<ThingDef> AllThingDefs(this List<ThingValue> list)

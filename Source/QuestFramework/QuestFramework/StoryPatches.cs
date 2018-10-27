@@ -197,13 +197,17 @@ namespace StoryFramework
         [HarmonyPatch(new Type[] { typeof(Pawn), typeof(Pawn), typeof(float), typeof(bool)})]
         static class RecruitPatch
         {
+            private static PawnKindDef def;
+
+            public static bool Prefix(Pawn recruiter, Pawn recruitee, float recruitChance, bool useAudiovisualEffects = true)
+            {
+                def = recruitee.kindDef;
+                return true;
+            }
+
             public static void Postfix(Pawn recruiter, Pawn recruitee, float recruitChance, bool useAudiovisualEffects = true)
             {
-
-                if ((recruitee.def.entityDefToBuild as TerrainDef) == null)
-                {
-                    StoryHandler.Missions.ForEach(m => m.objectives.Where(o => o.CurrentState == MOState.Active).Do(o => o.thingTracker?.ProcessTarget(recruitee.kindDef, recruitee.Position, recruitee.Map, ObjectiveType.Recruit, null, recruitee)));
-                }
+                StoryHandler.Missions.ForEach(m => m.objectives.Where(o => o.CurrentState == MOState.Active).Do(o => o.thingTracker?.ProcessTarget(def, recruitee.Position, recruitee.Map, ObjectiveType.Recruit, null, recruitee)));          
             }
         }
 
@@ -270,8 +274,8 @@ namespace StoryFramework
                         }
                     ));
                     }
-                    Dictionary<Objective, List<ThingDef>> stations = StoryHandler.StationDefs();
-                    foreach (Objective objective in stations.Keys)
+                    Dictionary<ObjectiveDef, List<ThingDef>> stations = StoryHandler.StationDefs();
+                    foreach (ObjectiveDef objective in stations.Keys)
                     {
                         if (stations[objective].Contains(__instance.def))
                         {
@@ -342,7 +346,7 @@ namespace StoryFramework
                 DamageInfo dinfo2 = new DamageInfo();
                 if (dinfo.HasValue)
                 { dinfo2 = dinfo.Value; }
-                if (dinfo2.Instigator != null && dinfo2.Instigator is Pawn && (dinfo2.Instigator as Pawn).IsColonist)
+                if (dinfo2.Instigator != null && dinfo2.Instigator.Faction == Faction.OfPlayerSilentFail)
                 {
                     StoryHandler.Missions.ForEach(m => m.objectives.Where(o => o.CurrentState == MOState.Active).Do(o => o.thingTracker?.ProcessTarget(temp, tempPos, tempMap, ObjectiveType.Kill, null, __instance)));
                 }

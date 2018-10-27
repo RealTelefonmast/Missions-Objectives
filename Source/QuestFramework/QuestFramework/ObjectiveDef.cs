@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using RimWorld;
 using Verse;
+using Verse.AI;
 
 namespace StoryFramework
 {
@@ -102,6 +103,23 @@ namespace StoryFramework
             {
                 return DefDatabase<MissionDef>.AllDefsListForReading.Find(m => m.objectives.Contains(this));
             }
+        }
+
+        public bool CanBeDoneBy(Pawn pawn, Thing thing)
+        {
+            if (CurrentState != MOState.Active)
+            {
+                return false;
+            }
+            if (!pawn.CanReserveAndReach(thing, PathEndMode.Touch, Danger.Some))
+            {
+                return false;
+            }
+            if (!skillRequirements.NullOrEmpty() && !skillRequirements.All(sr => sr.PawnSatisfies(pawn)))
+            {
+                return false;
+            }
+            return true;
         }
 
         public bool IsFinished

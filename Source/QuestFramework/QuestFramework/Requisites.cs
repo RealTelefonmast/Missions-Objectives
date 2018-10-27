@@ -210,27 +210,30 @@ namespace StoryFramework
                             int owned = 0;
                             foreach (ThingValue tv in things)
                             {
-                                IEnumerable<Thing> list = map.listerThings.ThingsOfDef(tv.ThingDef).Where(t => t.IsInValidStorage());
-                                int num = 0;
-                                foreach (Thing item in list)
+                                if (tv.ThingDef != null)
                                 {
-                                    bool notValid = false;
-                                    if (tv.Stuff != null && item.Stuff != tv.Stuff)
+                                    IEnumerable<Thing> list = map.listerThings.ThingsOfDef(tv.ThingDef).Where(t => t.IsInValidStorage());
+                                    int num = 0;
+                                    foreach (Thing item in list)
                                     {
-                                        notValid = true;
-                                    }
-                                    bool flag = item.TryGetQuality(out QualityCategory qc);
-                                    if (tv.CustomQuality && flag && qc != tv.QualityCategory)
-                                    {
-                                        notValid = true;
-                                    }
-                                    if (!notValid)
-                                    {
-                                        num += item.stackCount;
-                                        if (num >= tv.value)
+                                        bool notValid = false;
+                                        if (tv.Stuff != null && item.Stuff != tv.Stuff)
                                         {
-                                            owned++;
-                                            break;
+                                            notValid = true;
+                                        }
+                                        bool flag = item.TryGetQuality(out QualityCategory qc);
+                                        if (tv.CustomQuality && flag && qc != tv.QualityCategory)
+                                        {
+                                            notValid = true;
+                                        }
+                                        if (!notValid)
+                                        {
+                                            num += item.stackCount;
+                                            if (num >= tv.value)
+                                            {
+                                                owned++;
+                                                break;
+                                            }
                                         }
                                     }
                                 }

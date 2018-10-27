@@ -82,7 +82,7 @@ namespace StoryFramework
             if (travelSettings != null)
             {
                 TravelMode mode = travelSettings.mode;
-                string ModeLabel = (mode.ToString() + "_SMO").Translate();
+                string ModeLabel = (mode.ToString() + "Travel_SMO").Translate();
                 float ModeLabelHeight = Text.CalcHeight(ModeLabel, width);
                 Rect ModeLabelRect = new Rect(5f, CurrentY, width, ModeLabelHeight);
                 Rect BoxRect = new Rect();
@@ -281,7 +281,10 @@ namespace StoryFramework
                     WidgetRow infoRect = new WidgetRow(ContainerRect.width * 0.5f, CurY);
                     itemRow.Gap(10f);
                     GUI.color = ResolveColor(thingValue);
-                    itemRow.Icon(thingValue.ThingDef.uiIcon);
+                    if (thingValue.IsPawnKindDef && !thingValue.ThingDef.race.Humanlike)
+                    {
+                        itemRow.Icon(thingValue.ThingDef.uiIcon);
+                    }
                     GUI.color = Color.white;
                     itemRow.Label(label);
                     if (tracker.TargetsDone.TryGetValue(thingValue, out int value))
@@ -298,23 +301,35 @@ namespace StoryFramework
             //Rewards
             float RewardContainerHeight = ContainerSplit - 46f;
             List<IncidentProperties> props = new List<IncidentProperties>(objective.def.incidentsOnCompletion);
-            props.Add(objective.def.result);
-            if (!props.NullOrEmpty() && props.Any(p => !p?.spawnSettings?.spawnList.NullOrEmpty() ?? false))
+            if (objective.def.result != null)
             {
-                float TotalHeight = props.Sum(s => s.spawnSettings.spawnList.Count) * 34f;
-                float height = TotalHeight > ContainerSplit ? ContainerSplit : TotalHeight;
-                Rect CompletedRewardsRect = new Rect(0f, CurrentY, MainInfoSub.width, height);
-                CurrentY += CompletedRewardsRect.height;
-                DrawRewardContainer(CompletedRewardsRect, "CompletedRewards_SMO".Translate(), ref RewardCompletedPos, props);
+                props.Add(objective.def.result);
             }
-            props = objective.def.incidentsOnFail;
-            if (!props.NullOrEmpty() && props.Any(p => !p?.spawnSettings?.spawnList.NullOrEmpty() ?? false))
+            if (!props.NullOrEmpty())
             {
-                float total = props.Sum(s => s.spawnSettings.spawnList.Count) * 34f;
-                float height = total > ContainerSplit ? ContainerSplit : total;
-                Rect FailedRewardsRect = new Rect(0f, CurrentY, MainInfoSub.width, height);
-                CurrentY += FailedRewardsRect.height;
-                DrawRewardContainer(FailedRewardsRect, "FailedRewards_SMO".Translate(), ref RewardFailedPos, props);
+                if (props.Any(p => p.type == IncidentType.Reward))
+                {
+                    if (!props.NullOrEmpty() && props.Any(p => !p?.spawnSettings?.spawnList.NullOrEmpty() ?? false))
+                    {
+                        float TotalHeight = props.Sum(s => s.spawnSettings.spawnList.Count) * 34f;
+                        float height = TotalHeight > ContainerSplit ? ContainerSplit : TotalHeight;
+                        Rect CompletedRewardsRect = new Rect(0f, CurrentY, MainInfoSub.width, height);
+                        CurrentY += CompletedRewardsRect.height;
+                        DrawRewardContainer(CompletedRewardsRect, "CompletedRewards_SMO".Translate(), ref RewardCompletedPos, props);
+                    }
+                }
+                props = objective.def.incidentsOnFail;
+                if (props.Any(p => p.type == IncidentType.Reward))
+                {
+                    if (!props.NullOrEmpty() && props.Any(p => !p?.spawnSettings?.spawnList.NullOrEmpty() ?? false))
+                    {
+                        float total = props.Sum(s => s.spawnSettings.spawnList.Count) * 34f;
+                        float height = total > ContainerSplit ? ContainerSplit : total;
+                        Rect FailedRewardsRect = new Rect(0f, CurrentY, MainInfoSub.width, height);
+                        CurrentY += FailedRewardsRect.height;
+                        DrawRewardContainer(FailedRewardsRect, "FailedRewards_SMO".Translate(), ref RewardFailedPos, props);
+                    }
+                }
             }
             GUI.EndGroup();
         }
@@ -330,6 +345,7 @@ namespace StoryFramework
 
         private void DrawRewardContainer(Rect rect, string label, ref Vector2 pos, List<IncidentProperties> properties)
         {
+            properties = properties.FindAll(p => p.type == IncidentType.Reward);
             Vector2 LabelSize = Text.CalcSize(label);
             Rect LabelRect = new Rect(new Vector2(5f, rect.y), LabelSize);
             Widgets.Label(LabelRect, label);
@@ -423,13 +439,15 @@ namespace StoryFramework
             {
                 return thingValue.ResolvedStuff.stuffProps.color;
             }
-            if (thingValue.IsPawnKindDef)
+            if (thingValue.IsPawnKindDef && !thingValue.ThingDef.race.Humanlike)
             {
                 PawnKindDef pdef = thingValue.PawnKindDef;
-                if (pdef.lifeStages.Last().bodyGraphicData.color != Color.white)
+                
+                if(!pdef.lifeStages.NullOrEmpty() && pdef.lifeStages.Last().bodyGraphicData.color is Color color && color != Color.white)
                 {
-                    return thingValue.ThingDef.race.leatherDef.graphicData.color;
+                    return color;
                 }
+                return thingValue.ThingDef.race.leatherDef?.graphicData.color ?? Color.white;           
             }
             return Color.white;
         }

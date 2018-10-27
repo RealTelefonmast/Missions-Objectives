@@ -64,6 +64,7 @@
     <Compile Include="ObjectiveStation.cs" />
     <Compile Include="ObjectiveTypeDef.cs" />
     <Compile Include="PawnSettings.cs" />
+    <Compile Include="RaidSettings.cs" />
     <Compile Include="ThingSettings.cs" />
     <Compile Include="PositionFilter.cs" />
     <Compile Include="ScenPart_Story.cs" />

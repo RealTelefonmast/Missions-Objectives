@@ -35,12 +35,12 @@ namespace StoryFramework
 
         public override bool HasJobOnThing(Pawn pawn, Thing t, bool forced = false)
         {
-            List<Objective> objectives = Story.AllStations.StationObjectives(t);
-            foreach(Objective objective in objectives)
+            List<ObjectiveDef> objectives = Story.AllStations.StationObjectives(t);
+            foreach(ObjectiveDef objective in objectives)
             {
                 if (objective.CanBeDoneBy(pawn, t))
                 {
-                    this.objective = objective;
+                    this.objective = Story.GetObjective(objective);
                     return true;
                 }
             }

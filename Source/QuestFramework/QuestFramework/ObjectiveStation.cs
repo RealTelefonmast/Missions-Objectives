@@ -9,17 +9,21 @@ namespace StoryFramework
     public class ObjectiveStation : IExposable
     {
         public Thing station;
-        public List<Objective> objectives = new List<Objective>();
+        public List<ObjectiveDef> objectives = new List<ObjectiveDef>();
         public bool active;
 
-        public ObjectiveStation(Thing station, Objective objective, bool active)
+        public ObjectiveStation()
+        {
+        }
+
+        public ObjectiveStation(Thing station, ObjectiveDef objective, bool active)
         {
             this.station = station;
             this.objectives.Add(objective);
             this.active = active;
         }
 
-        public void AddObjective(Objective objective)
+        public void AddObjective(ObjectiveDef objective)
         {
             if (!objectives.Contains(objective))
             {
@@ -30,7 +34,7 @@ namespace StoryFramework
         public void ExposeData()
         {
             Scribe_References.Look(ref station, "thing");
-            Scribe_Collections.Look(ref objectives, "objective", LookMode.Reference);
+            Scribe_Collections.Look(ref objectives, "objective", LookMode.Def);
             Scribe_Values.Look(ref active, "active");
         }
     }

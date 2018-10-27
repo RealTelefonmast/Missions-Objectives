@@ -9,32 +9,30 @@ using Verse;
 
 namespace StoryFramework
 {
-    public class ThingSkyfaller : Editable
+    public class ThingSkyfaller
     {
-        public ThingDef def;
-        public ThingDef skyfaller;
+        public ThingDef innerThing;
+        public ThingDef skyfallerDef;
+        public int amount = 1;
         public float chance = 1f;
 
-        public override IEnumerable<string> ConfigErrors()
+        public ThingSkyfaller()
         {
-            if(def != null && skyfaller == null)
-            {
-                yield return "Skyfaller listing in spawnSettings is missing second part for def: " + def;
-            }
         }
 
         public void LoadDataFromXmlCustom(XmlNode xmlRoot)
         {
-            DirectXmlCrossRefLoader.RegisterObjectWantsCrossRef(this, "def", xmlRoot.Name);
+            DirectXmlCrossRefLoader.RegisterObjectWantsCrossRef(this, "skyfallerDef", xmlRoot.Name);
             string Child = Regex.Replace(xmlRoot.FirstChild.Value, @"\s+", "");
-            string[] array = Child.Split(new char[]
-            {
-                ','
-            });
-            DirectXmlCrossRefLoader.RegisterObjectWantsCrossRef(this, "skyfaller", array[0]);
+            string[] array = Child.Split(',');
+            DirectXmlCrossRefLoader.RegisterObjectWantsCrossRef(this, "innerThing", array[0]);
             if(array.Count() == 2)
             {
-                chance = (float)ParseHelper.FromString(array[1], typeof(float));
+                amount = (int)ParseHelper.FromString(array[1], typeof(int));
+            }
+            if(array.Count() == 3)
+            {
+                chance = (float)ParseHelper.FromString(array[2], typeof(float));
             }
         }
     }

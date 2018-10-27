@@ -22,10 +22,10 @@
 	<Locked_SMO>Locked Missions</Locked_SMO>
 	
 	<!-- Travel Settings -->
-	<Reach_SMO>Reach a destination...</Reach_SMO>
-	<Explore_SMO>Explore a specified map.</Explore_SMO>
-	<Trade_SMO>Trade with the specified factions.</Trade_SMO>
-	<Raid_SMO>Raid the specified factions.</Raid_SMO>
+	<ReachTravel_SMO>Reach a destination...</ReachTravel_SMO>
+	<ExploreTravel_SMO>Explore a specified map.</ExploreTravel_SMO>
+	<TradeTravel_SMO>Trade with the specified factions.</TradeTravel_SMO>
+	<RaidTravel_SMO>Raid the specified factions.</RaidTravel_SMO>
 	<TradeBuy_SMO>Buy for more than {0} silver.</TradeBuy_SMO>
 	<TradeSell_SMO>Sell for more than {0} silver.</TradeSell_SMO>
 	<TravelDistance_SMO>With minimum distance: {0} tiles</TravelDistance_SMO>
@@ -61,7 +61,9 @@
 	<ReqDestroyPlural_SMO>Destroy all described things.</ReqDestroyPlural_SMO>
 	<ReqKill_SMO>Kill any of the described beings.</ReqKill_SMO>
 	<ReqKillPlural_SMO>Kill all of the described beings.</ReqKillPlural_SMO>
-	
+	<ReqWait_Label_SMO>Wait until the timer runs out.</ReqWait_Label_SMO>
+	<ReqRecruit_SMO>Recruit the described pawns.</ReqRecruit_SMO>
+	<ReqRecruitAny_SMO>Recruit any of the described pawns.</ReqRecruitAny_SMO>
 	<ReqTravelReach_SMO>Reach the specified destination.</ReqTravelReach_SMO>
 	<ReqTravelExplore_SMO>Explore a new map.</ReqTravelExplore_SMO>
 	<ReqTravelRaid_SMO>Raid one or more factions.</ReqTravelRaid_SMO>
@@ -95,6 +97,8 @@
 	
 	<BarInput_SMO>Click here to check the current map for the objective.</BarInput_SMO>
 	
+	<ObjectiveJob_SMO>Currently working on</ObjectiveJob_SMO>
+	
 	<!-- Objective Types -->
 	<ConstructOrCraft_SMO>This objective requires you to construct the following structures and items.</ConstructOrCraft_SMO>
 	<ConstructOrCraftAny_SMO>This objective requires you to construct any of the following structures and items.</ConstructOrCraftAny_SMO>
@@ -110,6 +114,7 @@
 	<Research_SMO></Research_SMO>
 	
 	<OType_SMO>Objective Type</OType_SMO>
+	<Wait_Label>Wait</Wait_Label>
 	<ConstructOrCraft_Label>Construct</ConstructOrCraft_Label>
 	<Destroy_Label>Destroy</Destroy_Label>
 	<Kill_Label>Kill</Kill_Label>
@@ -119,6 +124,8 @@
 	<Research_Label>Research</Research_Label>
 	<Travel_Label>Travel</Travel_Label>
 	<None_Label>None</None_Label>
+	<Raid_SMO>A raid arrived!</Raid_SMO>
+	<RaidDesc_SMO>A raid arrived on your map, they have:\n{0}</RaidDesc_SMO>
 	
 	<OState_SMO>Objective Status</OState_SMO>
 	<Active_SMO>Active</Active_SMO>
@@ -135,6 +142,10 @@
 	<AppearDesc_SMO>{0} has appeared on your map!</AppearDesc_SMO>
 	<AppearPlural_SMO>Things appeared!</AppearPlural_SMO>
 	<AppearDescPlural_SMO>A list of things has appeared on your map!</AppearDescPlural_SMO>
+	<Skyfaller_SMO>Object crash!</Skyfaller_SMO>
+	<SkyfallerPlural_SMO>Objects crashing!</SkyfallerPlural_SMO>
+	<SkyfallerDesc_SMO>{0} has fallen from the sky!</SkyfallerDesc_SMO>
+	<SkyfallerDescPlural_SMO>Multiple objects have fallen from the sky!</SkyfallerDescPlural_SMO>
 	
 	<ResearchIncident_SMO>Research unlocked!</ResearchIncident_SMO>
 	<ResearchIncidentDesc_SMO>The following research projects have been unlocked:\n{0}</ResearchIncidentDesc_SMO>

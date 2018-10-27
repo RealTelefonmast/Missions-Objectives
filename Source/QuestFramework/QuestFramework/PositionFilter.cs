@@ -29,13 +29,16 @@ namespace StoryFramework
             return cell;
         }
 
-        public List<IntVec3> FindCells(Map map, int count, List<ThingValue> rewards = null)
+        public List<IntVec3> FindCells(Map map, int count, List<ThingValue> rewards = null, List<ThingDef> things = null)
         {
             List<IntVec3> spawnPositions = new List<IntVec3>();
             int minRoomSize = 0;
-            foreach (ThingValue tv in rewards)
+            if (!rewards.NullOrEmpty())
             {
-                minRoomSize += (int)Math.Round(((double)tv.value / (double)tv.ThingDef.stackLimit), 0, MidpointRounding.AwayFromZero);
+                foreach (ThingValue tv in rewards)
+                {
+                    minRoomSize += (int)Math.Round(((double)tv.value / (double)tv.ThingDef.stackLimit), 0, MidpointRounding.AwayFromZero);
+                }
             }
             List<IntVec3> AllCells = map.AllCells.Where(c => !c.Fogged(map) && c.Standable(map)).ToList();
 
@@ -74,6 +77,10 @@ namespace StoryFramework
             if (roofs == AreaCheck.Prefer)
             {
                 AllCells.RemoveAll(v => !v.Roofed(map));
+            }
+            if (!things.NullOrEmpty())
+            {
+                AllCells.RemoveAll(v => things.Any(t => !t.ThingFitsAt(map, v)));
             }
             int i = 0;
             int failsafe = 0;

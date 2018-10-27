@@ -19,6 +19,7 @@ namespace StoryFramework
         private bool failedOnce = false;
         private float workDone = 0;
         private int timer = -1;
+        public MOState LatestState = MOState.Inactive;
         public TargetInfo lastTarget;
 
         public Objective(){}
@@ -53,6 +54,7 @@ namespace StoryFramework
             {
                 def.targetSettings
             });
+            Scribe_Values.Look(ref LatestState, "LatestState");
             Scribe_References.Look(ref parentMission, "parent");
             Scribe_Values.Look(ref startedOnce, "startedOnce");
             Scribe_Values.Look(ref finishedOnce, "finishedOnce");
@@ -64,12 +66,12 @@ namespace StoryFramework
 
         public string GetUniqueLoadID()
         {
-            return def.defName;
+            return def.defName + "Objective";
         }
 
         public void ObjectiveTick()
         {
-            if (CurrentState == MOState.Active)
+            if (LatestState == MOState.Active)
             {
                 Notify_Start();
                 if (timer > 0)
@@ -115,6 +117,7 @@ namespace StoryFramework
                     return;
                 }
             }
+            LatestState = CurrentState;
         }
 
         public void Notify_Start()
@@ -125,7 +128,6 @@ namespace StoryFramework
                 {
                     props.Notify_Execute(thingTracker?.LastTarget.Map ?? Find.AnyPlayerHomeMap, thingTracker?.LastTarget.IsValid ?? false ? thingTracker.LastTarget : lastTarget, def, IncidentCondition.Started);
                 }
-                StoryManager.StoryHandler.Notify_NewMission(parentMission);
                 startedOnce = true;
                 OnStart();
             }
@@ -142,7 +144,7 @@ namespace StoryFramework
                 {
                     props?.Notify_Execute(map, targetInfo, def, IncidentCondition.Finished);
                 }
-                StoryManager.StoryHandler.AllStations.Station(this)?.objectives.Remove(this);
+                StoryManager.StoryHandler.AllStations.Station(this.def)?.objectives.Remove(this.def);
                 Messages.Message("FinishedObjective_SMO".Translate() + ": " + def.LabelCap, MessageTypeDefOf.PositiveEvent);
                 finishedOnce = true;
                 if (def.targetSettings?.consume ?? false)
@@ -161,7 +163,7 @@ namespace StoryFramework
                 {
                     props.Notify_Execute(thingTracker?.LastTarget.Map ?? Find.AnyPlayerHomeMap, thingTracker?.LastTarget.IsValid ?? false ? thingTracker.LastTarget : lastTarget, def, IncidentCondition.Failed);
                 }
-                StoryManager.StoryHandler.AllStations.Station(this)?.objectives.Remove(this);
+                StoryManager.StoryHandler.AllStations.Station(this.def)?.objectives.Remove(this.def);
                 Messages.Message("FailedObjective_SMO".Translate() + " " + def.LabelCap, MessageTypeDefOf.NegativeEvent);
                 failedOnce = true;
                 OnFail();
@@ -274,23 +276,6 @@ namespace StoryFramework
                 }
                 return pawns;
             }
-        }
-
-        public bool CanBeDoneBy(Pawn pawn, Thing thing)
-        {
-            if(CurrentState != MOState.Active)
-            {
-                return false;
-            }
-            if(!pawn.CanReserveAndReach(thing, PathEndMode.Touch, Danger.Some))
-            {
-                return false;
-            }
-            if(!def.skillRequirements.NullOrEmpty() && !def.skillRequirements.All(sr => sr.PawnSatisfies(pawn)))
-            {
-                return false;
-            }
-            return true;
         }
 
         public int GetTimer

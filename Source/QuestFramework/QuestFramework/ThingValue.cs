@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 
 namespace StoryFramework
 {
-    public sealed class ThingValue : IExposable
+    public sealed class ThingValue : Editable, IExposable
     {
         public ThingDef Stuff;
         public QualityCategory QualityCategory = QualityCategory.Normal;
@@ -21,6 +21,14 @@ namespace StoryFramework
 
         public ThingValue()
         {
+        }
+
+        public override IEnumerable<string> ConfigErrors()
+        {
+            if(ThingDef == null)
+            {
+                yield return "Can't find thing or pawn with defName: " + defName;
+            }
         }
 
         public void ExposeData()
@@ -45,7 +53,7 @@ namespace StoryFramework
         {
             get
             {
-                if (ThingDef.MadeFromStuff)
+                if (ThingDef?.MadeFromStuff ?? false)
                 {
                     if (Stuff != null)
                     {

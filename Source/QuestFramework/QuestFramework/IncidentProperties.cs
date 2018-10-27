@@ -6,6 +6,7 @@ using RimWorld;
 using Verse;
 using Verse.AI.Group;
 using Verse.AI;
+using Harmony;
 
 namespace StoryFramework
 {
@@ -26,9 +27,7 @@ namespace StoryFramework
         public string letterLabel;
         public string letterDesc;
         public LetterDef letterDef;
-        public FactionDef faction;
-        public RaidStrategyDef raidStrategy;
-        public PawnsArrivalModeDef arriveMode;
+        public RaidSettings raidSettings = new RaidSettings();
         public TaleDef tale;
         public int points = -1;
         public float pointMultiplier = 1f;
@@ -40,9 +39,6 @@ namespace StoryFramework
         {
             DirectXmlCrossRefLoader.RegisterObjectWantsCrossRef(this, "category", "ThreatSmall");
             DirectXmlCrossRefLoader.RegisterObjectWantsCrossRef(this, "letterDef", "NeutralEvent");
-            DirectXmlCrossRefLoader.RegisterObjectWantsCrossRef(this, "raidStrategy", "ImmediateAttack");
-            DirectXmlCrossRefLoader.RegisterObjectWantsCrossRef(this, "faction", "Pirate");
-            DirectXmlCrossRefLoader.RegisterObjectWantsCrossRef(this, "arriveMode", "EdgeWalkIn");
         }
 
         public override IEnumerable<string> ConfigErrors()
@@ -69,7 +65,7 @@ namespace StoryFramework
         {
             get
             {
-                return Find.FactionManager.AllFactions.First(f => f.def == faction);
+                return Find.FactionManager.AllFactions.First(f => f.def == raidSettings.faction);
             }
         }
 
@@ -92,8 +88,8 @@ namespace StoryFramework
             parms.points = points >= 0 ? points : parms.points;
             parms.faction = Faction;
             parms.forced = true;
-            parms.raidStrategy = raidStrategy;
-            parms.raidArrivalMode = arriveMode;
+            parms.raidStrategy = raidSettings.strategy;
+            parms.raidArrivalMode = raidSettings.arriveMode;
             parms.spawnCenter = positionFilter.FindCell(map, spawnSettings.spawnList);
             if(type == IncidentType.Reward)
             {
@@ -137,7 +133,7 @@ namespace StoryFramework
                 StringBuilder sb = new StringBuilder();
                 foreach(ResearchProjectDef project in researchUnlocks)
                 {
-                    sb.Append("   - " + project.LabelCap);
+                    sb.Append("   - " + project.LabelCap + "\n");
                     Find.ResearchManager.FinishProject(project);
                 }
                 label = "ResearchIncident_SMO".Translate();
@@ -208,7 +204,7 @@ namespace StoryFramework
             {
                 SpawnAround(parms.spawnCenter, map, ref targets, out bool p);
                 label = p ? "AppearPlural_SMO".Translate() : "Appear_SMO".Translate();
-                message = p ? "AppearDescPlural_SMO".Translate() : "AppearDesc_SMO".Translate(targets);
+                message = p ? "AppearDescPlural_SMO".Translate() : "AppearDesc_SMO".Translate(targets.targets[0]);
             }
             if (type == IncidentType.Skyfaller)
             {
@@ -217,13 +213,18 @@ namespace StoryFramework
                 {
                     if (Rand.Chance(skyfaller.chance))
                     {
-                        count++;
-                        targets.targets.Add(SkyfallerMaker.SpawnSkyfaller(skyfaller.skyfaller, skyfaller.def, parms.spawnCenter, map));
+                        List<IntVec3> pos = positionFilter.FindCells(map, skyfaller.amount,null,spawnSettings.skyfallers.ThingDefs());
+                        for (int i = 0; i < skyfaller.amount; i++)
+                        {
+                            count++;
+                            Skyfaller skyfallerThing = SkyfallerMaker.SpawnSkyfaller(skyfaller.skyfallerDef, skyfaller.innerThing, pos[i], map);
+                            targets.targets.Add(skyfallerThing.innerContainer[0]);
+                        }
                     }
                 }
                 bool plural = count > 1;
-                label = plural ? "Skyfaller_SMO".Translate() : "SkyfallerPlural_SMO".Translate();
-                message = plural ? "SkyfallerDesc_SMO".Translate() : "SkyfallerDescPlural_SMO".Translate();
+                label = !plural ? "Skyfaller_SMO".Translate() : "SkyfallerPlural_SMO".Translate();
+                message = !plural ? "SkyfallerDesc_SMO".Translate(targets.targets[0]) : "SkyfallerDescPlural_SMO".Translate();
             }
             if (type == IncidentType.Raid)
             {
@@ -241,7 +242,7 @@ namespace StoryFramework
                     }
                 }
                 parms.raidArrivalMode.Worker.Arrive(raiders, parms);
-                parms.raidStrategy.Worker.MakeLords(parms, raiders);
+                raidSettings.MakeLords(parms, map, raiders);
                 Find.StoryWatcher.statsRecord.numRaidsEnemy++;
                 label = "Raid_SMO".Translate();
                 message = "RaidDesc_SMO".Translate(PawnKinds);

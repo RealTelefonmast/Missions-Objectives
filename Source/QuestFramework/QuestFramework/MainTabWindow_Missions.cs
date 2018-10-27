@@ -845,7 +845,7 @@ namespace StoryFramework
             Rect BarRect = new Rect();
             Rect BotBarRect = new Rect();
             ResolveBarInputs(objective, out float pct, out string label, out Texture2D material);
-            if (material != null)
+            if (material != null && objective.def.type != ObjectiveType.Wait)
             {
                 BarRect = new Rect(new Vector2(TabRect.xMax - (size.x + 5f), 0f), size);
                 DrawProgressBar(BarRect, label, pct, material);

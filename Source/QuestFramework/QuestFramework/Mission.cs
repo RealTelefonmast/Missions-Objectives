@@ -21,7 +21,6 @@ namespace StoryFramework
         {
             this.def = def;
             SetUp();
-            StoryManager.StoryHandler.Notify_NewMission(this);
         }
 
         private void SetUp()
@@ -63,7 +62,7 @@ namespace StoryFramework
 
         public string GetUniqueLoadID()
         {
-            return def.defName;
+            return def.defName + "Mission";
         }
 
         public void MissionTick()

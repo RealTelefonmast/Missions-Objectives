@@ -46,6 +46,7 @@ namespace StoryFramework
             Scribe_Collections.Look(ref LockedMissions, "LockedMission", LookMode.Def);
             Scribe_References.Look(ref selectedObjective, "selectedObjective");
             Scribe_References.Look(ref selectedMission, "selectedMission");
+            Scribe_Collections.Look(ref AllStations, "AllStations", LookMode.Deep);
             Scribe_Deep.Look(ref Theme, "Theme");
             Scribe_Collections.Look(ref ModFolder, "ModFolder", LookMode.Deep);
             base.ExposeData();
@@ -62,25 +63,6 @@ namespace StoryFramework
             foreach (Mission mission in Missions)
             {
                 mission.MissionTick();
-            }
-        }
-
-        public void Notify_NewMission(Mission mission)
-        {
-            List<Thing> PoweredThings = AllStations.Stations();
-            foreach (Thing thing in PoweredThings)
-            {
-                foreach(Objective objective in mission.objectives)
-                {
-                    if(objective.CurrentState != MOState.Finished && objective.def.type == ObjectiveType.Research && (objective.def.targetSettings?.targets.Any(tv => tv.ThingDef == thing.def) ?? false))
-                    {
-                        ObjectiveStation station = StoryHandler.AllStations.Station(null, thing);
-                        if(station != null)
-                        {
-                            station.AddObjective(objective);
-                        }                     
-                    }
-                }
             }
         }
 
@@ -235,6 +217,13 @@ namespace StoryFramework
             return MOState.Inactive;
         }
 
+        public Objective GetObjective(ObjectiveDef def)
+        {
+            Objective objective = null;
+            Missions.Find(m => (objective = m.objectives.Find(o => o.def == def)) != null);
+            return objective;
+        }
+
         public MOState GetObjectiveState(ObjectiveDef def)
         {
             Objective objective = null;
@@ -242,21 +231,29 @@ namespace StoryFramework
             return objective?.CurrentState ?? MOState.Inactive;
         }
 
-        public Dictionary<Objective, List<ThingDef>> StationDefs()
+        public Dictionary<ObjectiveDef, List<ThingDef>> StationDefs()
         {
-            Dictionary<Objective, List<ThingDef>> defs = new Dictionary<Objective, List<ThingDef>>();
+            Dictionary<ObjectiveDef, List<ThingDef>> defs = new Dictionary<ObjectiveDef, List<ThingDef>>();
+            List<ObjectiveDef> objectives = DefDatabase<ObjectiveDef>.AllDefsListForReading.FindAll(o => o.type == ObjectiveType.Research || (o.type == ObjectiveType.Custom && o.customSettings.usesStation));
+            foreach(ObjectiveDef objective in objectives)
+            {
+                List<ThingDef> stations = objective.targetSettings?.targets.AllThingDefs();
+                defs.Add(objective, stations);
+            }
+            /*
             foreach (Mission mission in Missions)
             {
                 foreach (Objective objective in mission.objectives)
                 {
                     ObjectiveType type = objective.def.type;
-                    if (objective.CurrentState == MOState.Active && type == ObjectiveType.Research || (type == ObjectiveType.Custom && objective.def.customSettings.usesStation))
+                    if (objective.CurrentState == MOState.Active && ( type == ObjectiveType.Research || (type == ObjectiveType.Custom && objective.def.customSettings.usesStation)))
                     {
                         List<ThingDef> stations = objective.def.targetSettings?.targets.AllThingDefs();
                         defs.Add(objective, stations);
                     }
                 }
             }
+            */
             return defs;
         }
 
