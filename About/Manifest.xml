@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Manifest>
     <identifier>StoryFramework</identifier>
-    <version>0.2.1.2</version>
+    <version>2.1.2</version>
     <loadAfter>
         <li>Core</li>
 	    <li>ModManager</li>
@@ -10,6 +10,6 @@
 		<li>TiberiumRim</li>
 	</suggests>
 	<showCrossPromotions>true</showCrossPromotions>
-    <manifestUri>https://github.com/RealTelefonmast/Missions-Objectives/master/About/Manifest.xml</manifestUri>
+    <manifestUri>https://raw.githubusercontent.com/RealTelefonmast/Missions-Objectives/master/About/Manifest.xml</manifestUri>
     <downloadUri>https://github.com/RealTelefonmast/Missions-Objectives/releases/latest</downloadUri>
 </Manifest>
