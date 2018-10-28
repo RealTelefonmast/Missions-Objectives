@@ -26,8 +26,11 @@ namespace StoryFramework
             foreach(Type type in typeof(JobDriver).AllSubclasses())
             {
                 MethodInfo method = AccessTools.Method(type, "TryMakePreToilReservations");
-                HarmonyMethod postfix = new HarmonyMethod(typeof(StoryPatches), "JobDriver_PostFix");
-                Story.Patch(method, null, postfix);
+                if (!method.IsAbstract)
+                {
+                    HarmonyMethod postfix = new HarmonyMethod(typeof(StoryPatches), "JobDriver_PostFix");
+                    Story.Patch(method, null, postfix);
+                }
             }           
         }
 
@@ -35,11 +38,7 @@ namespace StoryFramework
         {
             if (__result)
             {
-                Action newAction = delegate
-                {
-                    StoryHandler.Notify_JobStarted(__instance.job.def, __instance.GetActor());
-                };
-                LongEventHandler.ExecuteWhenFinished(newAction);
+                StoryHandler.Notify_JobStarted(__instance.job.def, __instance.GetActor());
             }
         }
 
