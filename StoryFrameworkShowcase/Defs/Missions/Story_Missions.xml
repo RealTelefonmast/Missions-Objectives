@@ -1,0 +1,337 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+	
+	<StoryFramework.MissionDef>
+		<defName>WaitItOut</defName>
+		<label>Wait it out</label>
+		<description>This mission is timed, meaning that it will fail once the timer runs out. While you wait, you can look at the image viewer and check out some screenshots!</description>
+		<timer>
+			<days>4</days>
+		</timer>
+		<objectives>
+			<li>WaitItOut</li>
+			<li>Travel4</li>
+		</objectives>
+	</StoryFramework.MissionDef>
+	
+	<StoryFramework.MissionDef>
+		<defName>LockedMission</defName>
+		<label>Locked Mission Example</label>
+		<description>...</description>
+		<requisites>
+			<missions>
+				<li>WaitItOut</li>
+			</missions>
+			<objectives>
+				<li>WaitItOut</li>
+				<li>DestroySpace</li>
+				<li>TurretConstruction</li>
+			</objectives>
+			<researchProjects>
+				<li>TreeSowing</li>
+				<li>Smithing</li>
+				<li>GunTurrets</li>
+				<li>MultibarrelWeapons</li>
+			</researchProjects>
+			<things>
+				<li>Steel,1000</li>
+				<li>(MeleeWeapon_LongSword, Masterwork, Gold),2</li>
+				<li>Gun_ChainShotgun,5</li>
+			</things>
+			<jobs>
+				<li>Skygaze</li>
+				<li>Meditate</li>
+				<li>Play_Chess</li>
+				<li>Play_GameOfUr</li>
+			</jobs>
+			<anyObjective>true</anyObjective>
+			<anyThing>true</anyThing>
+		</requisites>
+	</StoryFramework.MissionDef>
+	
+	<StoryFramework.ObjectiveDef>
+		<defName>WaitItOut</defName>
+		<label>Waiting until the end of days</label>
+		<description>This objective is also timed, however, that's the goal of this objective, waiting. It finishes when the timer runs out.</description>
+		<type>Wait</type>
+		<timer>
+			<days>3</days>
+		</timer>
+		<result>
+			<type>Reward</type>
+			<spawnSettings>
+				<spawnList>
+					<li>Silver,50</li>
+				</spawnList>
+			</spawnSettings>
+		</result>
+		<images>
+			<li>waiting</li>
+			<li>screenshot/screenshot1</li>
+			<li>screenshot/screenshot2</li>
+			<li>screenshot/screenshot3</li>
+		</images>
+	</StoryFramework.ObjectiveDef>
+	
+	<StoryFramework.MissionDef>
+		<defName>AListOfThings</defName>
+		<label>A Few Small Jobs</label>
+		<description>Now while we are waiting, there are some other objective types to get to know to!</description>
+		<chronological>true</chronological>
+		<objectives>
+			<li>DestroySpace</li>
+			<li>RecruitSpaceRefugee</li>
+			<li>SpecialResearch</li>
+			<li>TurretConstruction</li>
+			<li>DefendBase</li>
+			<li>OwningThings</li>
+			<li>Travel1</li>
+			<li>Travel2</li>
+			<li>Travel3</li>
+		</objectives>
+	</StoryFramework.MissionDef>
+	
+	<StoryFramework.ObjectiveDef>
+		<defName>DestroySpace</defName>
+		<label>Destroy the space junk!</label>
+		<description>Some space junk has fallen... destroy it!</description>
+		<type>Destroy</type>
+		<incidentsOnStart>
+			<li>
+				<type>Skyfaller</type>
+				<spawnSettings>
+					<skyfallers>
+						<ShipChunkIncoming>ShipChunk,4</ShipChunkIncoming>
+					</skyfallers>
+				</spawnSettings>
+			</li>
+		</incidentsOnStart>
+		<targetSettings>
+			<targets>
+				<li>ShipChunk,4</li>
+			</targets>
+		</targetSettings>
+		<result>
+			<type>Reward</type>
+			<spawnSettings>
+				<spawnList>
+					<li>Silver,50</li>
+				</spawnList>
+			</spawnSettings>
+		</result>
+		<images>
+			<li>Chunks</li>
+		</images>
+	</StoryFramework.ObjectiveDef>
+	
+	<StoryFramework.ObjectiveDef>
+		<defName>RecruitSpaceRefugee</defName>
+		<label>Recruit the refugee.</label>
+		<description>They seem to be in need of aid, we could do that!</description>
+		<type>Recruit</type>
+		<incidentsOnStart>
+			<li>
+				<type>CustomWorker</type>
+				<workerClass>IncidentWorker_TransportPodCrash</workerClass>
+				<category>Misc</category>
+				<letterLabel>Refugee Pod!</letterLabel>
+				<letterDesc>A refugee crashed on our map, maybe we can recruit them?</letterDesc>
+			</li>
+		</incidentsOnStart>
+		<targetSettings>
+			<targets>
+				<li>SpaceRefugee</li>
+			</targets>
+		</targetSettings>
+		<result>
+			<type>Reward</type>
+			<spawnSettings>
+				<spawnList>
+					<li>(Gun_ChainShotgun, Masterwork)</li>
+				</spawnList>
+			</spawnSettings>
+		</result>
+        <images>
+		    <li>refugee</li>
+			<li>recruit</li>
+		</images>
+	</StoryFramework.ObjectiveDef>
+	
+	<StoryFramework.ObjectiveDef>
+		<defName>SpecialResearch</defName>
+		<label>Research Breakthrough: Turrets</label>
+		<description>Oh no! A big raid is incoming and we need to get our defenses up, hurry up and send all your distressed pawns to research stations!</description>
+		<type>Research</type>
+		<workAmount>400</workAmount>
+		<skillRequirements>
+			<Intellectual>10</Intellectual>
+			<Crafting>5</Crafting>
+		</skillRequirements>
+		<targetSettings>
+			<targets>
+				<li>SimpleResearchBench</li>
+				<li>HiTechResearchBench</li>
+				<li>Plant_TreeOak</li>
+			</targets>
+		</targetSettings>
+		<result>
+			<type>Research</type>
+			<researchUnlocks>
+				<li>GunTurrets</li>
+				<li>HeavyTurrets</li>
+				<li>SniperTurret</li>
+			</researchUnlocks>
+		</result>
+		<incidentsOnCompletion>
+			<li>
+				<type>Research</type>
+				<researchUnlocks>
+					<li>GunTurrets</li>
+					<li>HeavyTurrets</li>
+					<li>SniperTurret</li>
+				</researchUnlocks>
+			</li>
+			<li>
+				<type>Reward</type>
+				<spawnSettings>
+					<spawnList>
+						<li>Steel,2000</li>
+						<li>Plasteel,1000</li>
+						<li>ComponentIndustrial,500</li>
+						<li>Uranium,500</li>
+						<li>Gold,750,0.23</li>
+					</spawnList>
+				</spawnSettings>
+			</li>
+		</incidentsOnCompletion>	
+		<images>
+			<li>research</li>
+		</images>
+	</StoryFramework.ObjectiveDef>
+	
+	<StoryFramework.ObjectiveDef>
+		<defName>TurretConstruction</defName>
+		<label>Prepare the defences!</label>
+		<description>Now that we know how turrets work, let's build some!</description>
+		<type>ConstructOrCraft</type>
+		<targetSettings>
+			<targets>
+				<li>Turret_MiniTurret,5</li>
+				<li>Turret_Autocannon,3</li>
+				<li>Turret_Sniper,2</li>
+			</targets>
+		</targetSettings>
+		<result>
+			<type>Raid</type>
+			<raidSettings>				
+				<faction>AncientsHostile</faction>
+			</raidSettings>
+			<spawnSettings>
+				<spawnList>
+					<li>Mech_Centipede,2</li>
+					<li>WildMan,8</li>
+				</spawnList>
+			</spawnSettings>
+		</result>
+		<images>
+			<li>Defense</li>
+		</images>
+	</StoryFramework.ObjectiveDef>
+	
+	<StoryFramework.ObjectiveDef>
+		<defName>DefendBase</defName>
+		<label>Defend your base!</label>
+		<description>Kill all the attackers!</description>
+		<type>Kill</type>
+		<targetSettings>
+			<targets>
+				<li>Mech_Centipede,2</li>
+				<li>WildMan,8</li>
+			</targets>
+		</targetSettings>
+		<images>
+			<li>raid</li>
+		</images>
+	</StoryFramework.ObjectiveDef>
+	
+	<StoryFramework.ObjectiveDef>
+		<defName>OwningThings</defName>
+		<label>We need some specific thing in our storage.</label>
+		<description>Oh boy, wasn't that a fight!!</description>
+		<type>Own</type>
+		<targetSettings>
+			<targets>
+				<li>Gold,100</li>
+			</targets>
+		</targetSettings>
+	</StoryFramework.ObjectiveDef>
+	
+	<StoryFramework.ObjectiveDef>
+		<defName>Travel1</defName>
+		<label>Let's travel to some outlanders!</label>
+		<description>After that raid, we can finally relax a little and travel around the world!</description>
+		<type>Travel</type>
+		<travelSettings>
+			<mode>Reach</mode>
+			<destination>Settlement</destination>
+			<minDistance>10</minDistance>
+			<factionSettings>
+				<factions>
+					<li>OutlanderCivil</li>
+				</factions>
+			</factionSettings>
+		</travelSettings>
+	</StoryFramework.ObjectiveDef>
+	
+	<StoryFramework.ObjectiveDef>
+		<defName>Travel2</defName>
+		<label>Let's trade!</label>
+		<description>Now that we have a caravan at their settlement, we should trade.</description>
+		<type>Travel</type>
+		<travelSettings>
+			<mode>Trade</mode>
+			<factionSettings>
+				<factions>
+					<li>OutlanderCivil</li>
+				</factions>				
+			</factionSettings>
+		</travelSettings>
+	</StoryFramework.ObjectiveDef>
+	
+	<StoryFramework.ObjectiveDef>
+		<defName>Travel3</defName>
+		<label>Let's RAID!</label>
+		<description>And now... why shouldn't we be the raiders?</description>
+		<type>Travel</type>
+		<travelSettings>
+			<mode>Raid</mode>
+			<factionSettings>
+				<factions>
+					<li>OutlanderCivil</li>
+				</factions>				
+			</factionSettings>
+		</travelSettings>
+	</StoryFramework.ObjectiveDef>
+	
+	<StoryFramework.ObjectiveDef>
+		<defName>Travel4</defName>
+		<label>Travel Example</label>
+		<description>You can also be told to explore a new map, which means making a new settlement there, check the info for this objective to see what the conditions can be.</description>
+		<type>Travel</type>
+		<travelSettings>
+			<mode>Explore</mode>
+			<minDistance>23</minDistance>
+			<tileSettings>
+				<biome>Desert</biome>
+				<road>AncientAsphaltRoad</road>
+				<river>HugeRiver</river>
+				<hilliness>LargeHills</hilliness>
+			</tileSettings>
+		</travelSettings>
+		<images>
+			<li>travelsomewhere</li>
+		</images>
+	</StoryFramework.ObjectiveDef>
+	
+	
+</Defs>

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ModMetaData>
-    <name>RimWorld Tutorial</name>
+    <name>Story Framework Showcase</name>
 	<targetVersion>1.0.0</targetVersion>
     <author>Telefonmast</author>
     <description>
-		This tutorial will teach you some basics of RW!
+		Showcasing all the features of the framework!
 	</description>
 </ModMetaData>
