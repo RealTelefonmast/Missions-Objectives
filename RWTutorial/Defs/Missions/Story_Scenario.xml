@@ -2,11 +2,11 @@
 <Defs>
 		
 	<ScenarioDef>
-		<defName>RimWorldShowcase</defName>
-		<label>Showcase</label>
-		<description>This scenario will showcase some things of the Story Framework.</description>
+		<defName>RimWorldTutorial</defName>
+		<label>Tutorial</label>
+		<description>This scenario will teach you some basics of RimWorld.</description>
 		<scenario>
-			<summary>Time to show!</summary>
+			<summary>Time to learn!</summary>
 			<playerFaction>
 				<def>PlayerFaction</def>
 				<factionDef>PlayerColony</factionDef>
@@ -126,7 +126,7 @@
 				<li Class="StoryFramework.ScenPart_Story">
 					<def>ScenPartStory</def>
 					<UnlockedMissions>
-						<li>AListOfThings</li>
+						<li>ElectricitySetup</li>
 					</UnlockedMissions>
 				</li>
 				

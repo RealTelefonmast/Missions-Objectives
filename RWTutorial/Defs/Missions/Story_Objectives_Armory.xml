@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+	<StoryFramework.ObjectiveDef ParentName="ResearchObjective">
+		<defName>SmithingResearch</defName>
+		<label>Smithing metals</label>
+		<description></description>
+		<workAmount>700</workAmount>
+		<result>
+			<type>Research</type>
+			<researchUnlocks>
+				<li>Smithing</li>
+			</researchUnlocks>
+		</result>
+	</StoryFramework.ObjectiveDef>
+	
+	<StoryFramework.ObjectiveDef>
+		<defName>SmithingConstruction</defName>
+		<label>Construct a smithy!</label>
+		<description></description>
+		<type>ConstructOrCraft</type>
+		<targetSettings>
+			<targets>
+				<li>ElectricSmithy</li>
+				<li>FueledSmithy</li>
+			</targets>
+			<any>true</any>
+		</targetSettings>
+		<result>
+			<type>Research</type>
+			<researchUnlocks>
+				<li>Smithing</li>
+			</researchUnlocks>
+		</result>
+	</StoryFramework.ObjectiveDef>
+	
+	<StoryFramework.ObjectiveDef>
+		<defName>QualityMatters</defName>
+		<label>Craft better than good quality items!</label>
+		<description>Craft any item like weapons or apparel and achieve a quality better than "Good"!</description>
+		<type>ConstructOrCraft</type>
+		<requisites>
+			<objectives>
+				<li>SmithingConstruction</li>
+			</objectives>
+		</requisites>
+		<targetSettings>
+			<thingSettings>
+				<minQuality>Good</minQuality>
+			</thingSettings>		
+		</targetSettings>
+		<result>
+			<type>Reward</type>
+			<spawnSettings>
+				<spawnList>
+					<li>Silver,50</li>
+				</spawnList>
+			</spawnSettings>
+		</result>
+		<images>
+			<li>Crafting/QualityStuff</li>
+		</images>
+	</StoryFramework.ObjectiveDef>
+	
+</Defs>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+	<StoryFramework.ObjectiveDef>
+		<defName>MechanoidHunt</defName>
+		<label>Get mechanoid samples.</label>
+		<description>As you play, you will encounter three main types of mechanoids, the Centipedes, Scythers and Lancers.\nKill one of each.</description>
+		<customSettings>
+			<shortLabel>Kill one of each mechanoid type.</shortLabel>
+		</customSettings>
+		<type>Kill</type>
+		<targetSettings>
+			<targets>
+				<li>Mech_Centipede</li>
+				<li>Mech_Lancer</li>
+				<li>Mech_Scyther</li>
+			</targets>
+		</targetSettings>
+		<result>
+			<type>Reward</type>
+			<spawnSettings>
+				<spawnList>
+					<li>Silver,225</li>
+				</spawnList>
+			</spawnSettings>
+		</result>
+		<images>
+			<li>Pawns/Mechanoids</li>
+		</images>
+	</StoryFramework.ObjectiveDef>
+	
+	<StoryFramework.ObjectiveDef>
+		<defName>MechanoidPrepare</defName>
+		<label>Prepare for the incoming danger.</label>
+		<description>After killing the mechanoids, a strange light was seen in the sky.. it seems like a part of a bigger ship. We should prepare just in-case.</description>
+		<type>ConstructOrCraft</type>
+		<timer>
+			<continueWhenFinished>true</continueWhenFinished>
+			<days>4</days>
+		</timer>
+		<result>
+			<type>CustomWorker</type>
+			<workerClass>IncidentWorker_PsychicEmanatorShipPartCrash</workerClass>
+			<tale>ShipPartCrash</tale>
+			<letterDef>ThreatSmall</letterDef>
+			<category>ThreatBig</category>
+			<letterLabel>Psychic Ship</letterLabel>
+			<letterDesc>A psychic ship crashed on your map, destroy it!</letterDesc>
+		</result>
+		<incidentsOnFail>
+			<li>
+				<type>CustomWorker</type>
+				<workerClass>IncidentWorker_PsychicEmanatorShipPartCrash</workerClass>
+				<tale>ShipPartCrash</tale>
+				<letterDef>ThreatSmall</letterDef>
+				<category>ThreatBig</category>
+				<letterLabel>Psychic Ship</letterLabel>
+				<letterDesc>A psychic ship crashed on your map, destroy it!</letterDesc>
+			</li>
+		</incidentsOnFail>
+		<targetSettings>
+			<targets>
+				<li>Turret_MiniTurret,4</li>
+			</targets>
+		</targetSettings>
+	</StoryFramework.ObjectiveDef>
+	
+	<StoryFramework.ObjectiveDef>
+		<defName>MechanoidAttack</defName>
+		<label>.</label>
+		<description>.</description>
+		<type>Destroy</type>
+		<targetSettings>
+			<targets>
+				<li>CrashedPsychicEmanatorShipPart</li>
+			</targets>
+		</targetSettings>
+	</StoryFramework.ObjectiveDef>
+	
+	
+</Defs>
