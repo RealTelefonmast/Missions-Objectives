@@ -141,14 +141,14 @@ namespace StoryFramework
             }
             if (type == IncidentType.Reward)
             {
+                List<Thing> things = SpawnThings(out List<List<Thing>> groups, ref targets);
                 SpawnMode mode = spawnSettings.mode;
                 if (mode == SpawnMode.Target)
                 {
-                    SpawnAround(parms.spawnCenter, map, ref targets, out bool p);
+                    SpawnAround(parms.spawnCenter, map, things, ref targets, out bool p);
                 }
                 if (mode == SpawnMode.Stockpile)
                 {
-                    List<Thing> things = SpawnThings(out List<List<Thing>> list, ref targets);
                     List<IntVec3> cells = new List<IntVec3>();
                     List<Zone> zones = map.zoneManager.AllZones;
                     for (int i = 0; i < zones.Count; i++)
@@ -170,7 +170,7 @@ namespace StoryFramework
                             cell = filter.FindCell(map, spawnSettings.spawnList);
                         }
                         cell = cell.IsValid ? cell : parms.spawnCenter;
-                        DropPodUtility.DropThingGroupsNear(cell, map, list, 140, false, true, true);                       
+                        DropPodUtility.DropThingGroupsNear(cell, map, groups, 140, false, true, true);                       
                     }
                     else
                     {
@@ -184,7 +184,7 @@ namespace StoryFramework
                 }
                 if (mode == SpawnMode.DropPod)
                 {
-                    SpawnDropPod(parms.spawnCenter, map, ref targets);
+                    SpawnDropPod(parms.spawnCenter, map, groups);
                 }
                 if (condition.Value == IncidentCondition.Started)
                 {
@@ -202,7 +202,8 @@ namespace StoryFramework
             }
             if (type == IncidentType.Appear)
             {
-                SpawnAround(parms.spawnCenter, map, ref targets, out bool p);
+                List<Thing> things = SpawnThings(out List<List<Thing>> groups, ref targets);
+                SpawnAround(parms.spawnCenter, map, things, ref targets, out bool p);
                 label = p ? "AppearPlural_SMO".Translate() : "Appear_SMO".Translate();
                 message = p ? "AppearDescPlural_SMO".Translate() : "AppearDesc_SMO".Translate(targets.targets[0]);
             }
@@ -250,16 +251,13 @@ namespace StoryFramework
             Find.LetterStack.ReceiveLetter(letterLabel ?? label, letterDesc ?? message, letterDef, targets, type == IncidentType.Raid ? Faction : null, null);
         }
 
-        public void SpawnDropPod(IntVec3 root, Map map, ref LookTargets targets)
+        public void SpawnDropPod(IntVec3 root, Map map, List<List<Thing>> groups)
         {
-            List<List<Thing>> groups = new List<List<Thing>>();
-            SpawnThings(out groups, ref targets);
             DropPodUtility.DropThingGroupsNear(root, map, groups, 140, false, true, true);
         }
 
-        public void SpawnAround(IntVec3 root, Map map, ref LookTargets lastThing, out bool plural)
+        public void SpawnAround(IntVec3 root, Map map, List<Thing> things, ref LookTargets lastThing, out bool plural)
         {
-            List<Thing> things = SpawnThings(out List<List<Thing>> list, ref lastThing);
             plural = things.Count > 1;
             if (spawnSettings.mode == SpawnMode.Scatter)
             {
@@ -286,24 +284,37 @@ namespace StoryFramework
                 if (Rand.Chance(tv.chance))
                 {
                     List<Thing> thingList = new List<Thing>();
-                    int totalStack = tv.value;
-                    while (totalStack > 0)
+                    if (tv.IsPawnKindDef)
                     {
-                        ThingDef stuff = tv.ResolvedStuff;
-                        Thing thing = ThingMaker.MakeThing(tv.ThingDef, stuff);
-                        totalStack--;
-                        if (thing.TryGetQuality(out QualityCategory qc))
+                        for (int i = 0; i < tv.value; i++)
                         {
-                            thing.TryGetComp<CompQuality>().SetQuality(tv.QualityCategory, ArtGenerationContext.Outsider);
+                            Pawn pawn = PawnGenerator.GeneratePawn(tv.PawnKindDef, Faction.OfPlayer);
+                            things.Add(pawn);
+                            thingList.Add(pawn);
+                            targets.targets.Add(pawn);
                         }
-                        for (int i = 1; i < thing.def.stackLimit && totalStack > 0; i++)
+                    }
+                    else
+                    {
+                        int totalStack = tv.value;
+                        while (totalStack > 0)
                         {
+                            ThingDef stuff = tv.ResolvedStuff;
+                            Thing thing = ThingMaker.MakeThing(tv.ThingDef, stuff);
                             totalStack--;
-                            thing.stackCount++;
+                            if (thing.TryGetQuality(out QualityCategory qc))
+                            {
+                                thing.TryGetComp<CompQuality>().SetQuality(tv.QualityCategory, ArtGenerationContext.Outsider);
+                            }
+                            for (int i = 1; i < thing.def.stackLimit && totalStack > 0; i++)
+                            {
+                                totalStack--;
+                                thing.stackCount++;
+                            }
+                            targets.targets.Add(thing);
+                            things.Add(thing);
+                            thingList.Add(thing);
                         }
-                        targets.targets.Add(thing);
-                        things.Add(thing);
-                        thingList.Add(thing);
                     }
                     groups.Add(thingList);
                 }

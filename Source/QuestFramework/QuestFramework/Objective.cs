@@ -69,7 +69,7 @@ namespace StoryFramework
             return def.defName + "Objective";
         }
 
-        public void ObjectiveTick()
+        public virtual void ObjectiveTick()
         {
             if (LatestState == MOState.Active)
             {
