@@ -10,9 +10,7 @@ namespace StoryFramework
     [StaticConstructorOnStartup]
     public static class StoryMats
     {
-        public static readonly Texture2D info = ContentFinder<Texture2D>.Get("UI/Icons/info", true);
         public static readonly Texture2D info2 = ContentFinder<Texture2D>.Get("UI/Buttons/InfoButton", true);
-        public static readonly Texture2D close = ContentFinder<Texture2D>.Get("UI/Icons/Close", true);
         public static readonly Texture2D arrow = ContentFinder<Texture2D>.Get("UI/Arrow");
 
         //Colors
