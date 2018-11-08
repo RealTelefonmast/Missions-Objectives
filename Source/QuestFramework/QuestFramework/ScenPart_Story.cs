@@ -32,5 +32,43 @@ namespace StoryFramework
                 }
             }
         }
+
+        public override string Summary(Scenario scen)
+        {
+            StringBuilder sb = new StringBuilder(base.Summary(scen));
+            string locked = "";
+            string unlocked = "";
+            string finished = "";
+            foreach (MissionDef def in LockedMissions)
+            {
+                locked += "   - " + def.LabelCap + "\n";
+            }
+            foreach (MissionDef def in UnlockedMissions)
+            {
+                unlocked += "   - " + def.LabelCap + "\n";
+            }
+            foreach (MissionDef def in FinishedMissions)
+            {
+                finished += "   - " + def.LabelCap + "\n";
+            }
+            sb.AppendLine();
+            sb.AppendLine("ScenPart_SMO".Translate());
+            if (!UnlockedMissions.NullOrEmpty())
+            {
+                sb.AppendLine("UnlockedMissions_SMO".Translate() + ": ");
+                sb.AppendLine(unlocked);
+            }
+            if (!LockedMissions.NullOrEmpty())
+            {
+                sb.AppendLine("LockedMissions_SMO".Translate() + ": ");
+                sb.AppendLine(locked);
+            }
+            if (!FinishedMissions.NullOrEmpty())
+            {
+                sb.AppendLine("FinishedMissions_SMO".Translate() + ": ");
+                sb.AppendLine(finished);
+            }
+            return sb.ToString().TrimEndNewlines();
+        }
     }
 }

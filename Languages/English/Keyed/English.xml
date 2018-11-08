@@ -21,6 +21,12 @@
 	<LockedTab_SMO>Show Locked</LockedTab_SMO>
 	<Locked_SMO>Locked Missions</Locked_SMO>
 	
+	<!--ScenPart-->
+	<ScenPart_SMO>Start with the following mission sets.</ScenPart_SMO>
+	<LockedMissions_SMO>Locked Missions</LockedMissions_SMO>
+	<UnlockedMissions_SMO>Starting Missions</UnlockedMissions_SMO>
+	<FinishedMissions_SMO>Finished Missions</FinishedMissions_SMO>
+	
 	<!-- Travel Settings -->
 	<ReachTravel_SMO>Reach a destination...</ReachTravel_SMO>
 	<ExploreTravel_SMO>Explore a specified map.</ExploreTravel_SMO>
