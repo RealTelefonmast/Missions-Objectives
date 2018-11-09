@@ -131,8 +131,11 @@ namespace StoryFramework
                 if (actuallyTraded)
                 {
                     profit -= TradeSession.deal.SilverTradeable.CountHeldBy(Transactor.Colony);
-                    FactionDef def = TradeSession.trader.Faction.def;
-                    StoryHandler.Notify_Interacted(def, TravelMode.Trade, -profit);
+                    if (TradeSession.trader != null && TradeSession.trader.Faction != null && TradeSession.trader.Faction.def != null)
+                    {
+                        FactionDef def = TradeSession.trader.Faction.def;
+                        StoryHandler.Notify_Interacted(def, TravelMode.Trade, -profit);
+                    }
                 }
             }
         }
@@ -216,7 +219,7 @@ namespace StoryFramework
         {
             public static void Postfix(Frame __instance)
             {
-                if ((__instance.def.entityDefToBuild as TerrainDef) == null)
+                if (__instance != null && (__instance.def.entityDefToBuild as TerrainDef) == null)
                 {
                     StoryHandler.Missions.ForEach(m => m.objectives.Where(o => o.CurrentState == MOState.Active).Do(o => o.thingTracker?.ProcessTarget(__instance.def.entityDefToBuild as ThingDef, __instance.Position, __instance.Map, ObjectiveType.ConstructOrCraft)));
                 }
@@ -248,11 +251,14 @@ namespace StoryFramework
             {
                 foreach(Thing thing in __result)
                 {
-                    StoryHandler.Missions.ForEach(m => m.objectives.Where(o => o.CurrentState == MOState.Active).Do(o =>
+                    if (thing != null)
                     {
-                        o.thingTracker?.ProcessTarget(thing.def, worker.Position, worker.Map, ObjectiveType.ConstructOrCraft, thing);
+                        StoryHandler.Missions.ForEach(m => m.objectives.Where(o => o.CurrentState == MOState.Active).Do(o =>
+                        {
+                            o.thingTracker?.ProcessTarget(thing.def, worker.Position, worker.Map, ObjectiveType.ConstructOrCraft, thing);
+                        }
+                        ));
                     }
-                    ));
                 }
             }
         }
@@ -263,7 +269,7 @@ namespace StoryFramework
         {
             public static void Postfix(Thing __instance, bool respawningAfterLoad)
             {
-                if (__instance.Map.IsPlayerHome && !respawningAfterLoad && __instance.def.mote == null)
+                if (!respawningAfterLoad && (__instance?.Map?.IsPlayerHome ?? false) && __instance.def.mote == null)
                 {
                     if(__instance is Pawn pawn)
                     {
@@ -315,12 +321,9 @@ namespace StoryFramework
                 DamageInfo dinfo2 = new DamageInfo();
                 if (dinfo.HasValue)
                 { dinfo2 = dinfo.Value; }
-                if (dinfo2.Instigator != null && dinfo2.Instigator is Pawn)
+                if (dinfo2.Instigator != null && dinfo2.Instigator.Faction == Faction.OfPlayerSilentFail)
                 {
-                    if ((dinfo2.Instigator as Pawn).IsColonist)
-                    {
-                        StoryHandler.Missions.ForEach(m => m.objectives.Where(o => o.CurrentState == MOState.Active).Do(o => o.thingTracker?.ProcessTarget(temp, tempPos, tempMap, ObjectiveType.Destroy)));
-                    }
+                    StoryHandler.Missions.ForEach(m => m.objectives.Where(o => o.CurrentState == MOState.Active).Do(o => o.thingTracker?.ProcessTarget(temp, tempPos, tempMap, ObjectiveType.Destroy)));
                 }
             }
         }
