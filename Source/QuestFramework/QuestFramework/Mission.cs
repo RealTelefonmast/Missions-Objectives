@@ -11,6 +11,7 @@ namespace StoryFramework
     {
         public MissionDef def;
         public List<Objective> objectives = new List<Objective>();
+        public FailTracker failTracker;
         private MOState cachedState = MOState.None;
         private bool seen = false;
         private int timer = -1;
@@ -36,6 +37,10 @@ namespace StoryFramework
                     MakeObjective(objective);
                 }
             }
+            if(failTracker == null && def.failConditions != null)
+            {
+                failTracker = new FailTracker(def.failConditions);
+            }
             Notify_Change();
         }
 
@@ -45,6 +50,10 @@ namespace StoryFramework
             Scribe_Collections.Look(ref objectives, "objectives", LookMode.Deep, new object[]
             {
                 this
+            });
+            Scribe_Deep.Look(ref failTracker, "failTracker", new object[]
+            {
+                def.failConditions, true
             });
             Scribe_Values.Look(ref cachedState, "cachedState");
             Scribe_Values.Look(ref seen, "seen");
@@ -87,7 +96,15 @@ namespace StoryFramework
         public void Notify_Change()
         {
             LatestState = CurrentState;
-            if(LatestState == MOState.Finished && def.repeatable)
+            if(LatestState == MOState.Finished)
+            {
+                Messages.Message("FinishedMission_SMO".Translate() + ": " + def.LabelCap, MessageTypeDefOf.PositiveEvent);
+            }
+            if (LatestState == MOState.Failed)
+            {
+                Messages.Message("FailedMission_SMO".Translate() + ": " + def.LabelCap, MessageTypeDefOf.NegativeEvent);
+            }
+            if (LatestState == MOState.Finished && def.repeatable)
             {
                 Reset();
             }
@@ -161,7 +178,7 @@ namespace StoryFramework
         {
             get
             {
-                return LatestState == MOState.Failed || !CanProgress || timer == 0;
+                return LatestState == MOState.Failed || !CanProgress || timer == 0 || (failTracker?.Failed ?? false);
             }
         }
 

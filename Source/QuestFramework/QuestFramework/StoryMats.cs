@@ -12,6 +12,8 @@ namespace StoryFramework
     {
         public static readonly Texture2D info2 = ContentFinder<Texture2D>.Get("UI/Buttons/InfoButton", true);
         public static readonly Texture2D arrow = ContentFinder<Texture2D>.Get("UI/Arrow");
+        public static readonly Texture2D missionInfo = ContentFinder<Texture2D>.Get("UI/Icons/MissionInfo");
+        public static readonly Texture2D warning = ContentFinder<Texture2D>.Get("UI/Icons/Warning");
 
         //Colors
         public static ColorInt defaultFill = new ColorInt(45, 45, 45);

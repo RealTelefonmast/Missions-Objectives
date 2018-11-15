@@ -17,7 +17,7 @@ namespace StoryFramework
         public List<SkillRequirement> skillRequirements = new List<SkillRequirement>();
         public TargetSettings targetSettings;
         public TravelSettings travelSettings;
-        //public FailConditions failConditions = new FailConditions();
+        public FailConditions failConditions;
         public TimerSettings timer = new TimerSettings();
         public IncidentProperties result;
         public List<IncidentProperties> incidentsOnStart = new List<IncidentProperties>();
@@ -59,22 +59,30 @@ namespace StoryFramework
             {
                 targetSettings.CheckForDuplicates(this);
             }
-            if (type == ObjectiveType.Destroy || type == ObjectiveType.Kill || type == ObjectiveType.ConstructOrCraft || type == ObjectiveType.Own)
+            if (type == ObjectiveType.Destroy || type == ObjectiveType.Kill || type == ObjectiveType.ConstructOrCraft || type == ObjectiveType.Own || type == ObjectiveType.MapCheck)
             {
                 if (targetSettings == null)
                 {
                     yield return "TargetSettings not set up!";
                 }
-                else if(type != ObjectiveType.Kill && type != ObjectiveType.Recruit && (targetSettings?.targets.Any(tv => tv.IsPawnKindDef) ?? false))
+                else if ((type == ObjectiveType.ConstructOrCraft || type == ObjectiveType.Own) && targetSettings.pawnSettings != null)
                 {
-                    yield return "Target list contains pawn although type is " + type;
+                    yield return "Objective Type " + type + " does not support pawnSettings.";
                 }
-            }
-            if(type == ObjectiveType.PawnCheck)
-            {
-                if (targetSettings?.pawnSettings == null)
+                else if ((type == ObjectiveType.Destroy || type == ObjectiveType.Kill || type == ObjectiveType.Recruit) && targetSettings.thingSettings != null)
                 {
-                    yield return "PawnSettings in targetSettings are empty.";
+                    yield return "Objective Type " + type + " does not support thingSettings.";
+                }
+                else if (type == ObjectiveType.Kill || type == ObjectiveType.Recruit)
+                {
+                    if (targetSettings.targets.Any(t => !t.IsPawnKindDef))
+                    {
+                        yield return  "Target list contains ThingDefs although " + type + " does not support it.";
+                    }
+                }
+                else if (type != ObjectiveType.Kill && type != ObjectiveType.Recruit && (targetSettings?.targets.Any(tv => tv.IsPawnKindDef) ?? false))
+                {
+                    yield return "Target list contains PawnKindDefs although " + type + " does not support it.";
                 }
             }
             if (type == ObjectiveType.Research)

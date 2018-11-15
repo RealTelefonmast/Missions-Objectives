@@ -11,6 +11,29 @@ namespace StoryFramework
     [StaticConstructorOnStartup]
     public static class StoryUtils
     {
+        public static Rect IconLabel(this Listing_Standard listing, Texture2D tex, string label, Vector2 dimensions)
+        {
+            Rect rect = listing.GetRect(Text.CalcHeight(label, listing.ColumnWidth - dimensions.x));
+            GUI.DrawTexture(new Rect(rect.x, rect.y, dimensions.x, dimensions.y), tex);
+            Widgets.Label(new Rect(rect.x + dimensions.x, rect.y, rect.width - 29f, rect.height), label);
+            listing.Gap(listing.verticalSpacing);
+            return rect;
+        }
+
+        public static bool ButtonLabel(this Listing_Standard listing, string label, string highlightTag = null)
+        { 
+            Rect rect = listing.GetRect(30f);
+            Widgets.DrawHighlightIfMouseover(rect);
+            Widgets.Label(rect, label);
+            bool result = Widgets.ButtonInvisible(rect);
+            if (highlightTag != null)
+            {
+                UIHighlighter.HighlightOpportunity(rect, highlightTag);
+            }
+            listing.Gap(listing.verticalSpacing);
+            return result;
+        }
+
         public static List<ThingDef> ThingDefs(this List<ThingSkyfaller> skyfallers)
         {
             List<ThingDef> defs = new List<ThingDef>();
@@ -48,7 +71,11 @@ namespace StoryFramework
 
         public static bool ThingIsValid(this Thing thing, ThingSettings s)
         {
-            if (s.stuff != null && thing.Stuff != s.stuff)
+            if(thing == null)
+            {
+                return false;
+            }
+            if (!thing.def.MadeFromStuff || (s.stuff != null && thing.Stuff != s.stuff))
             {
                 return false;
             }

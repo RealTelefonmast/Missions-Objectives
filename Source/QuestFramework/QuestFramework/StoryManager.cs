@@ -6,6 +6,7 @@ using RimWorld;
 using RimWorld.Planet;
 using Verse;
 using UnityEngine;
+using Harmony;
 
 namespace StoryFramework
 {
@@ -21,6 +22,9 @@ namespace StoryFramework
         public List<Thing> TempStations = new List<Thing>();
         public Vector2 missionScrollPos = Vector2.zero;
         public Vector2 objectiveScrollPos = Vector2.zero;
+        private Vector2 extraInfoScrollPos = Vector2.zero;
+        public bool showExtraInfo = true;
+        public float timerAlertMinHours = 5f;
 
         public static StoryManager StoryHandler
         {
@@ -44,11 +48,13 @@ namespace StoryFramework
         {
             Scribe_Collections.Look(ref Missions, "Missions", LookMode.Deep);
             Scribe_Collections.Look(ref LockedMissions, "LockedMission", LookMode.Def);
+            Scribe_Collections.Look(ref AllStations, "AllStations", LookMode.Deep);
+            Scribe_Collections.Look(ref ModFolder, "ModFolder", LookMode.Deep);
             Scribe_References.Look(ref selectedObjective, "selectedObjective");
             Scribe_References.Look(ref selectedMission, "selectedMission");
-            Scribe_Collections.Look(ref AllStations, "AllStations", LookMode.Deep);
             Scribe_Deep.Look(ref Theme, "Theme");
-            Scribe_Collections.Look(ref ModFolder, "ModFolder", LookMode.Deep);
+            Scribe_Values.Look(ref showExtraInfo, "showExtraInfo");
+            Scribe_Values.Look(ref timerAlertMinHours, "timerAlertMinHours");
             base.ExposeData();
         }
 
@@ -64,6 +70,180 @@ namespace StoryFramework
             {
                 mission.MissionTick();
             }
+        }
+
+        public void MissionInfoOnGUI()
+        {
+            if (Find.WindowStack.IsOpen<Screen_Credits>() || !(selectedMission?.def.failConditions != null || selectedObjective?.def.failConditions != null))
+            {
+                return;
+            }
+            Text.Font = GameFont.Small;
+            AlertsReadout alerts = (Find.UIRoot as UIRoot_Play).alerts;
+            LearningReadout readout = Find.Tutor?.learningReadout;
+            float totalHeight = Math.Min(ContentHeight(), ((float)UI.screenHeight / 2f)); //+ 8f;
+            float heightLearn = 8f;
+            if (Prefs.AdaptiveTrainingEnabled && readout != null)
+            {
+                float value = Traverse.Create(readout).Field("contentHeight").GetValue<float>();
+                if (value > 0)
+                {
+                    heightLearn += value + 19f;
+                }
+            }
+            float heightAlert = 0f;
+            if(alerts != null)
+            {                               
+                float alertY = Find.LetterStack.LastTopY - Traverse.Create(alerts).Field("activeAlerts").GetValue<List<Alert>>().Count * 28f;
+                float diff = (totalHeight + heightLearn) - alertY;
+                if (diff > 0)
+                {
+                    heightAlert = Math.Abs(diff) + 5f;
+                }
+            }
+            float maxHeight = totalHeight - heightAlert;
+            Rect Main = new Rect((float)UI.screenWidth - 208f, heightLearn, 200f, maxHeight);
+            Find.WindowStack.ImmediateWindow(1582828288, Main, WindowLayer.GameUI, delegate
+            {
+                Widgets.DrawHighlight(new Rect(0f, 0f, Main.width, Main.height));
+                Rect rect = new Rect(3f, 0f, Main.width, Main.height);              
+                Rect view = new Rect(0f, 0f, Main.width - 4f, totalHeight);
+                DrawCustomScrollBar(new Rect(0f, 0f, rect.width, Main.height), totalHeight);
+                Listing_Standard listing = new Listing_Standard();
+                listing.verticalSpacing = 2f;
+                listing.Begin(view);
+                Text.Font = GameFont.Tiny;
+                Widgets.BeginScrollView(rect, ref extraInfoScrollPos, view, false);
+                bool flag = false;
+                if (selectedMission != null && selectedMission.def.failConditions != null)
+                {
+                    bool failed = selectedMission.LatestState == MOState.Failed;
+                    Log.Message("Height: " + Text.CalcHeight("Mission_SMO".Translate(), listing.ColumnWidth));
+                    listing.Label(failed ? "MissionFailed_SMO".Translate("'" + selectedMission.def.LabelCap + "'") : "Mission_SMO".Translate("'" + selectedMission.def.LabelCap + "'") + "... ");
+                    if (!failed)
+                    {
+                        FailconReadout(selectedMission, selectedMission.def.failConditions, ref listing);
+                    }
+                    flag = true;
+                }           
+                if (selectedObjective != null && selectedObjective.def.failConditions != null)
+                {
+                    if (flag)
+                    {
+                        listing.GapLine(6);
+                    }
+                    bool failed = selectedObjective.CurrentState == MOState.Failed;
+                    listing.Label(failed ? "ObjectiveFailed_SMO".Translate("'" + selectedObjective.def.LabelCap + "'") : "Objective_SMO".Translate("'" + selectedObjective.def.LabelCap + "'") + "... ");
+                    if (!failed)
+                    {
+                        FailconReadout(selectedObjective, selectedObjective.def.failConditions, ref listing);
+                    }
+                }
+                Widgets.EndScrollView();
+                listing.End();
+            }, false, false, 0f);
+        }
+
+        private void DrawCustomScrollBar(Rect rect, float viewHeight)
+        {
+            float pct = rect.height / viewHeight;
+            float height = rect.height * pct;
+            Rect bar = new Rect(rect.xMax - 3f, rect.y, 3f, rect.height);
+            Widgets.DrawBoxSolid(bar, new Color(0.25f, 0.25f, 0.25f, 0.75f));
+            Vector2 size = new Vector2(3f, height);
+            float scrollHeight = (rect.height - height);
+            float scrollPosArea = viewHeight - rect.height;
+            float yOffset = scrollHeight * (1f - ((scrollPosArea - extraInfoScrollPos.y) / scrollPosArea));
+            Vector2 pos = new Vector2(bar.x, yOffset);
+            Rect block = new Rect(pos, size);
+            Widgets.DrawBoxSolid(block, Color.white);
+        }
+
+        private void FailconReadout<T>(T t, FailConditions conditions, ref Listing_Standard listing)
+        {
+            FailTracker failTracker = t is Mission ? (t as Mission).failTracker : (t as Objective).failTracker;
+            bool whenFinished = conditions.whenFinished;
+            if (!conditions.missions.NullOrEmpty())
+            {
+                string missions = whenFinished ? "FailCon_MissionDone".Translate() : "FailCon_MissionFail".Translate();
+                listing.IconLabel(StoryMats.warning, (missions + ":"), new Vector2(9f, 18f));
+                foreach (MissionDef mdef in conditions.missions)
+                {
+                    listing.Label("    - " + mdef.LabelCap);
+                }
+            }
+            if (!conditions.objectives.NullOrEmpty())
+            {
+                string objectives = whenFinished ? "FailCon_ObjectiveDone".Translate() : "FailCon_ObjectiveFail".Translate();
+                listing.IconLabel(StoryMats.warning, (objectives + ":"), new Vector2(9f, 18f));
+                foreach (ObjectiveDef oDef in conditions.objectives)
+                {
+                    listing.Label("    - " + oDef.LabelCap);
+                }
+            }
+            if (!conditions.targetSettings.targets.NullOrEmpty())
+            {
+                string targets = conditions.targetSettings.any ? "FailCon_TargetsAny".Translate() : "FailCon_Targets".Translate();
+                listing.IconLabel(StoryMats.warning, (targets + ":"), new Vector2(9f, 18f));
+                foreach (ThingValue tv in conditions.targetSettings.targets)
+                {
+                    listing.Label("    - " + tv.ThingDef.LabelCap + " - " + failTracker.TargetsLost[tv] + "/" + tv.value);
+                }
+            }
+            if(conditions.targetSettings.minColonistsToLose > 0)
+            {
+                listing.IconLabel(StoryMats.warning, "FailCon_DeadColonists".Translate() + ": " + failTracker.lostColonists + "/" + conditions.targetSettings.minColonistsToLose, new Vector2(9f, 18f));
+            }
+        }
+
+        private float ContentHeight()
+        {
+            float value = 0f;
+            List<FailConditions> cond = new List<FailConditions>();
+            if (selectedMission?.def.failConditions != null)
+            {
+                value += Text.CalcHeight("Mission_SMO".Translate() + ": " + selectedMission.def.LabelCap, 196f) + 2f;
+                if (selectedMission.LatestState == MOState.Active)
+                {
+                    cond.Add(selectedMission?.def.failConditions);
+                }
+            }          
+            if (selectedObjective?.def.failConditions != null)
+            {
+                value += Text.CalcHeight("Objective_SMO".Translate() + ": " + selectedObjective.def.LabelCap, 196f) + 2f;
+                if (selectedObjective.CurrentState == MOState.Active)
+                {
+                    cond.Add(selectedObjective.def.failConditions);
+                }
+            }
+            for (int i = 0; i < cond.Count; i++)
+            {
+                FailConditions condition = cond[i];
+                bool whenFinished = condition.whenFinished;
+                if (!condition.objectives.NullOrEmpty())
+                {
+                    string objectives = whenFinished ? "FailCon_ObjectiveDone".Translate() : "FailCon_ObjectiveFail".Translate();
+                    value += Text.CalcHeight(objectives + ":", 196f - 9f);
+                    value += (condition.objectives.Count * 12f) + 2f;
+                }
+                if (!condition.missions.NullOrEmpty())
+                {
+                    string missions = whenFinished ? "FailCon_MissionDone".Translate() : "FailCon_MissionFail".Translate();
+                    value += Text.CalcHeight(missions + ":", 196f - 9f);
+                    value += (condition.missions.Count * 12f) + 2f;
+                }
+                if ((condition.targetSettings?.targets.Count ?? 0) > 0)
+                {
+                    string targets = condition.targetSettings.any ? "FailCon_TargetsAny".Translate() : "FailCon_Targets".Translate();
+                    value += Text.CalcHeight(targets + ":", 196f - 9f);
+                    value += (condition.targetSettings.targets.Count) * 12f + 2f;
+                }
+                if (condition.targetSettings?.minColonistsToLose > 0)
+                {
+                    value += 12f + 2f;
+                }
+            }
+            return value;
         }
 
         public void Notify_Explored(int tile)

@@ -17,10 +17,11 @@ namespace StoryFramework
         public Dictionary<ThingValue, int> TargetsDone = new Dictionary<ThingValue, int>();
         private Dictionary<Thing, int> CurrentlyOwnedTargets = new Dictionary<Thing, int>();
         private List<Pawn> trackedPawns = new List<Pawn>();
+        private List<Thing> trackedThings = new List<Thing>();
         private int count = 0;
         public TargetInfo LastTarget;
 
-        public ThingTracker(){ }
+        public ThingTracker() { }
 
         public ThingTracker(TargetSettings settings)
         {
@@ -44,7 +45,8 @@ namespace StoryFramework
             Scribe_Values.Look(ref count, "count");
             Scribe_Collections.Look(ref tempInts, "tempInts", LookMode.Value);
             Scribe_Collections.Look<Thing, int>(ref CurrentlyOwnedTargets, "TempOwned", LookMode.Deep, LookMode.Value);
-            Scribe_Collections.Look(ref trackedPawns, "trackedPawns", LookMode.Value);
+            Scribe_Collections.Look(ref trackedPawns, "trackedPawns", LookMode.Reference);
+            Scribe_Collections.Look(ref trackedThings, "trackedThings", LookMode.Reference);
             Scribe_TargetInfo.Look(ref LastTarget, "lastTarget");
             if (Scribe.mode == LoadSaveMode.LoadingVars)
             {
@@ -55,6 +57,14 @@ namespace StoryFramework
             }
         }
 
+        public void TrackerTick()
+        {
+            TargetsDone.RemoveAll(t => t.Key == null);
+            trackedPawns.RemoveAll(t => !t.Spawned);
+            trackedThings.RemoveAll(t => !t.Spawned);
+            CurrentlyOwnedTargets.RemoveAll(t => !t.Key.Spawned);
+        }
+
         public bool WorksWithPawns
         {
             get
@@ -63,19 +73,59 @@ namespace StoryFramework
             }
         }
 
+        public int GetTotalNeededCount
+        {
+            get
+            {
+                int count = 0;
+                if (targetSettings.pawnSettings != null)
+                {
+                    count += targetSettings.pawnSettings.minAmount;
+                }
+                if (targetSettings.thingSettings != null)
+                {
+                    count += targetSettings.thingSettings.minAmount;
+                }
+                return targetSettings.targets.Sum(t => t.value) + count;
+            }
+        }
+
+        public int GetThingCount
+        {
+            get
+            {
+                if(type == ObjectiveType.ConstructOrCraft)
+                {
+                    return count;
+                }
+                return trackedThings.Where(t => !t.DestroyedOrNull()).Count();
+            }
+        }
+
+        public int GetPawnCount
+        {
+            get
+            {
+                return trackedPawns.Where(p => !p.DestroyedOrNull()).Count();
+            }
+        }
+
         public int GetTargetCount
         {
             get
             {
-                if(targetSettings.pawnSettings != null)
-                {
-                    return trackedPawns.Where(p => !p.DestroyedOrNull()).Count() + count;
-                }
-                if(targetSettings.thingSettings != null)
-                {
-                    return CurrentlyOwnedTargets.Where(t => !t.Key.DestroyedOrNull()).Count() + count;
-                }
                 return TargetsDone.Sum(tv => tv.Value);
+            }
+        }
+
+        public int GetTotalCount
+        {
+            get
+            {
+                int count = 0;
+                count += GetThingCount;
+                count += GetPawnCount;
+                return GetTargetCount + count + this.count;
             }
         }
 
@@ -89,23 +139,39 @@ namespace StoryFramework
             return 0;
         }
 
-        public bool AllDone
+        public int CurrentTrackedPawns
         {
             get
             {
-                if(targetSettings.pawnSettings != null)
-                {
-                    return GetTargetCount >= targetSettings.pawnSettings.minAmount;
-                }
-                if(targetSettings.thingSettings != null)
-                {
-                    return GetTargetCount >= targetSettings.thingSettings.minAmount;
-                }
+                return trackedPawns.Where(p => !p.DestroyedOrNull()).Count();
+            }
+        }
+
+        public int CurrentTrackedThings
+        {
+            get
+            {
+                return trackedThings.Where(t => !t.DestroyedOrNull()).Count();
+            }
+        }
+
+        public bool AllDone
+        {
+            get
+            {                
                 if (targetSettings.any)
                 {
+                    if (targetSettings.pawnSettings != null && GetTotalCount >= targetSettings.pawnSettings.minAmount)
+                    {
+                        return true;
+                    }
+                    if (targetSettings.thingSettings != null && GetTotalCount >= targetSettings.thingSettings.minAmount)
+                    {
+                        return true;
+                    }
                     return targetSettings.targets.Any(tv => TargetsDone[tv] >= tv.value);
                 }
-                return GetTargetCount >= TargetsDone.Sum(tv => tv.Key.value);
+                return GetTotalCount >= GetTotalNeededCount;
             }
         }
 
@@ -122,7 +188,7 @@ namespace StoryFramework
         public void ConsumeTargets()
         {
             trackedPawns.ForEach(p => p.DeSpawn());
-            for(int i = 0; i < CurrentlyOwnedTargets.Count; i++)
+            for (int i = 0; i < CurrentlyOwnedTargets.Count; i++)
             {
                 Thing thing = CurrentlyOwnedTargets.ElementAt(i).Key;
                 CurrentlyOwnedTargets.Remove(thing);
@@ -133,12 +199,12 @@ namespace StoryFramework
         public bool ResolveButtonInput(Rect rect)
         {
             bool result = false;
-            if (type == ObjectiveType.Own || type == ObjectiveType.PawnCheck)
+            if (type == ObjectiveType.Own)
             {
                 result = true;
                 if (Widgets.ButtonInvisible(rect))
                 {
-                    SoundDefOf.Click.PlayOneShotOnCamera(null); 
+                    SoundDefOf.Click.PlayOneShotOnCamera(null);
                     Map map = Find.CurrentMap;
                     if (type == ObjectiveType.Own)
                     {
@@ -150,10 +216,6 @@ namespace StoryFramework
                         }
                         CheckOwnedItems(tempList);
                     }
-                    if (type == ObjectiveType.PawnCheck)
-                    {
-                        UpdatePawnCheck(map);
-                    }
                 }
             }
             return result;
@@ -161,44 +223,47 @@ namespace StoryFramework
 
         public void CheckOwnedItems(List<Thing> things)
         {
-            for(int i = 0; i < things.Count; i++)
+            for (int i = 0; i < things.Count; i++)
             {
                 if (targetSettings.thingSettings != null)
                 {
                     if (things[i].ThingIsValid(targetSettings.thingSettings))
                     {
+                        Log.Message("Tracked Things: " + trackedThings.ToStringSafeEnumerable());
+                        if (!trackedThings.Contains(things[i]) && trackedThings.Count < targetSettings.thingSettings.minAmount)
+                        {
+                            trackedThings.Add(things[i]);
+                        }
                         if (!CurrentlyOwnedTargets.TryGetValue(things[i], out int lastStack))
                         {
-                            CurrentlyOwnedTargets.Add(things[i], things[i].stackCount);
+                            //CurrentlyOwnedTargets.Add(things[i], things[i].stackCount);
                         }
                     }
                 }
-                else
+
+                Thing thing = things[i];
+                thing = thing.GetInnerIfMinified();
+                ThingDef def = thing.def;
+                ThingValue tv = TargetsDone.ThingValue(def);
+                if (tv != null && TargetsDone[tv] < tv.value)
                 {
-                    Thing thing = things[i];
-                    thing = thing.GetInnerIfMinified();
-                    ThingDef def = thing.def;
-                    ThingValue tv = TargetsDone.ThingValue(def);
-                    if (tv != null && TargetsDone[tv] < tv.value)
+                    int value = 0;
+                    bool flag = CurrentlyOwnedTargets.TryGetValue(thing, out int lastStack);
+                    value = flag ? thing.stackCount - lastStack : thing.stackCount;
+                    int total = TargetsDone[tv] + value;
+                    if (total > tv.value)
                     {
-                        int value = 0;
-                        bool flag = CurrentlyOwnedTargets.TryGetValue(thing, out int lastStack);
-                        value = flag ? thing.stackCount - lastStack : thing.stackCount;
-                        int total = TargetsDone[tv] + value;
-                        if (total > tv.value)
-                        {
-                            int excess = total - tv.value;
-                            value = value - excess;
-                        }
-                        TargetsDone[tv] += value;
-                        if (!flag)
-                        {
-                            CurrentlyOwnedTargets.Add(thing, thing.stackCount);
-                        }
-                        else
-                        {
-                            CurrentlyOwnedTargets[thing] = thing.stackCount;
-                        }
+                        int excess = total - tv.value;
+                        value = value - excess;
+                    }
+                    TargetsDone[tv] += value;
+                    if (!flag)
+                    {
+                        CurrentlyOwnedTargets.Add(thing, thing.stackCount);
+                    }
+                    else
+                    {
+                        CurrentlyOwnedTargets[thing] = thing.stackCount;
                     }
                 }
             }
@@ -235,66 +300,59 @@ namespace StoryFramework
             return value;
         }
 
-        public void UpdatePawnCheck(Map map)
+        public void ProcessTarget<T>(T t, IntVec3 cell, Map map, ObjectiveType type, Thing thing = null, Pawn pawn = null, PawnInfo pawnInfo = null)
         {
-            foreach (Pawn pawn in map.mapPawns.AllPawns)
-            {
-                if (!trackedPawns.Contains(pawn))
-                {
-                    if (targetSettings.pawnSettings.PawnSatisfies(pawn))
-                    {
-                        trackedPawns.Add(pawn);
-                    }
-                }
-            }
-        }
-
-        public void ProcessTarget<T>(T t, IntVec3 cell, Map map, ObjectiveType type, Thing craftedThing = null, Pawn pawn = null)
-        {
+            PawnInfo info = pawnInfo != null ? pawnInfo : new PawnInfo(pawn); 
             if (this.type == type)
             {
                 if (targetSettings.thingSettings != null)
                 {
-                    if (craftedThing.ThingIsValid(targetSettings.thingSettings))
+                    if (thing.ThingIsValid(targetSettings.thingSettings))
                     {
-                        if (type == ObjectiveType.Destroy)
+                        int min = targetSettings.thingSettings.minAmount;
+                        if ((type == ObjectiveType.Destroy || type == ObjectiveType.ConstructOrCraft) && count < min)
                         {
                             count++;
                         }
-                        else
+                        else if (!trackedThings.Contains(thing) && trackedThings.Count < min)
+                        {
+                            trackedThings.Add(thing);
+                            LastTarget = thing;
+                        }
+                        /*
                         if (!CurrentlyOwnedTargets.TryGetValue(craftedThing, out int value))
                         {
                             CurrentlyOwnedTargets.Add(craftedThing, craftedThing.stackCount);
                             LastTarget = craftedThing;
                         }
+                        */
                     }
                 }
-                else if (targetSettings.pawnSettings != null)
+                if (targetSettings.pawnSettings != null)
                 {
-                    if(pawn != null)
+                    if (info != null)
                     {
-                        if (targetSettings.pawnSettings.PawnSatisfies(pawn))
+                        if (targetSettings.pawnSettings.PawnSatisfies(info))
                         {
-                            if (type == ObjectiveType.Kill)
+                            int min = targetSettings.pawnSettings.minAmount;
+                            if(pawn != null && !trackedPawns.Contains(pawn) && trackedPawns.Count < min)
+                            {
+                                
+                                trackedPawns.Add(pawn);
+                                LastTarget = pawn;
+                            }
+                            else if( count < min)
                             {
                                 count++;
-                            }else
-                            if (!trackedPawns.Contains(pawn))
-                            {
-                                trackedPawns.Add(pawn);
-                                LastTarget = craftedThing;
                             }
                         }
-                    }        
-                }
-                else
-                {
-                    ThingValue tv = TargetsDone.ThingValue(t);
-                    if (tv != null && TargetsDone[tv] < tv.value && tv.ThingFits(craftedThing))
-                    {
-                        TargetsDone[tv] += 1;
-                        LastTarget = new TargetInfo(cell, map, true);
                     }
+                }
+                ThingValue tv = TargetsDone.ThingValue(t);
+                if (tv != null && TargetsDone[tv] < tv.value && tv.ThingFits(thing))
+                {
+                    TargetsDone[tv] += 1;
+                    LastTarget = new TargetInfo(cell, map, true);
                 }
             }
         }

@@ -49,6 +49,7 @@ namespace StoryFramework
             GUI.BeginGroup(MainInfoSub);
 
             float tenth = MainInfoSub.width * 0.1f;
+            float middle = tenth * 5f;
             //Objective Type - State - Work - Time
             string TypeLabel = "OType_SMO".Translate() + ": " + (objective.def.type.ToString() + "_Label").Translate();
             Vector2 TypeLabelSize = Text.CalcSize(TypeLabel);
@@ -56,7 +57,7 @@ namespace StoryFramework
 
             string StateLabel = "OState_SMO".Translate() + ": " + (objective.CurrentState.ToString() + "_SMO").Translate();
             Vector2 StateLabelSize = Text.CalcSize(StateLabel);
-            Rect StateLabelRect = new Rect(new Vector2(tenth * 5f, CurrentY), StateLabelSize);
+            Rect StateLabelRect = new Rect(new Vector2(middle, CurrentY), StateLabelSize);
             CurrentY += StateLabelRect.height + 5f;
 
             bool workExists = objective.def.workAmount > 0;
@@ -65,7 +66,7 @@ namespace StoryFramework
             string TimerLabel = "Timer_SMO".Translate() + ": " + StoryUtils.GetTimerText(objective.GetTimer, objective.CurrentState);
             Vector2 TimerLabelSize = Text.CalcSize(TimerLabel);
             Rect WorkAmountRect = new Rect(new Vector2(5f, CurrentY), WorkAmountSize);
-            Rect TimerLabelRect = new Rect(new Vector2(tenth * 5f, CurrentY), TimerLabelSize);
+            Rect TimerLabelRect = new Rect(new Vector2(middle, CurrentY), TimerLabelSize);
             CurrentY += WorkAmountRect.height;
 
             Rect TSWTRect = new Rect(0f, TypeLabelRect.yMin, MainInfoSub.width, TypeLabelRect.height + WorkAmountRect.height + 5f);
@@ -173,13 +174,21 @@ namespace StoryFramework
                 string qual = thingSettings.minQuality?.GetLabel() ?? "Any_SMO".Translate();
                 string QualityLabel = "ThingSettingsQuality_SMO".Translate(qual);
                 Vector2 QualityLabelSize = Text.CalcSize(QualityLabel);
-                Rect QualityLabelRect = new Rect(new Vector2((width) * 0.5f, CurrentY), QualityLabelSize);
+                Rect QualityLabelRect = new Rect(new Vector2(middle, CurrentY), QualityLabelSize);
                 CurrentY += QualityLabelRect.height;
-                Rect TSRect = new Rect(0f, ThingSettingLabelRect.yMin, width, ThingSettingLabelHeight + QualityLabelSize.y);
+
+                int num = objective.thingTracker?.GetThingCount >= thingSettings.minAmount ? thingSettings.minAmount : objective.thingTracker.GetThingCount;
+                string NumLabel = "MapCheckCount_SMO".Translate(num + "/" + thingSettings.minAmount);
+                Vector2 NumLabelSize = Text.CalcSize(NumLabel);
+                Rect NumLabelRect = new Rect(new Vector2(5f, CurrentY), NumLabelSize);
+                CurrentY += NumLabelRect.height;
+
+                Rect TSRect = new Rect(0f, ThingSettingLabelRect.yMin, width + 10f, ThingSettingLabelHeight + QualityLabelSize.y + NumLabelSize.y);
                 Widgets.DrawBoxSolid(TSRect, new ColorInt(33, 33, 33).ToColor);
                 Widgets.Label(ThingSettingLabelRect, ThingSettingLabel);
                 Widgets.Label(StuffLabelRect, StuffLabel);
                 Widgets.Label(QualityLabelRect, QualityLabel);
+                Widgets.Label(NumLabelRect, NumLabel);
 
                 AddGap(MainInfoSub, ref CurrentY);
             }
@@ -189,7 +198,7 @@ namespace StoryFramework
             if(pawnSettings != null)
             {
                 bool humanlike = pawnSettings.def?.race.Humanlike ?? false;
-                string PawnDefLabel = ResolvePawnSettings((pawnSettings.def?.LabelCap ?? "AnyPawn_SMO".Translate()) + " (x" + pawnSettings.minAmount + ")");
+                string PawnDefLabel = ResolvePawnSettings();
                 float PawnDefLabelHeight = Text.CalcHeight(PawnDefLabel, width);
                 Rect PawnDefLabelRect = new Rect(5f, CurrentY, width, PawnDefLabelHeight);
                 CurrentY += PawnDefLabelHeight;
@@ -200,20 +209,26 @@ namespace StoryFramework
 
                 string FactionLabel = "PawnSettingsFaction_SMO".Translate(pawnSettings.factionDef?.LabelCap ?? "N/A");
                 Vector2 FactionLabelSize = Text.CalcSize(FactionLabel);
-                Rect FactionLabelRect = new Rect(new Vector2(MainInfoSub.center.x,CurrentY),FactionLabelSize);
+                Rect FactionLabelRect = new Rect(new Vector2(middle,CurrentY),FactionLabelSize);
                 CurrentY += PawnKindDefLabelSize.y;
 
                 string GenderLabel = "PawnSettingsGender_SMO".Translate(pawnSettings.gender?.GetLabel(!humanlike) ?? "N/A");
                 Vector2 GenderLabelSize = Text.CalcSize(GenderLabel);
                 Rect GenderLabelRect = new Rect(new Vector2(5f,CurrentY), GenderLabelSize);
+
+                int num = objective.thingTracker?.GetPawnCount >= pawnSettings.minAmount ? pawnSettings.minAmount : objective.thingTracker.GetPawnCount;
+                string NumLabel = "MapCheckCount_SMO".Translate(num + "/" + pawnSettings.minAmount);
+                Vector2 NumLabelSize = Text.CalcSize(NumLabel);
+                Rect NumLabelRect = new Rect(new Vector2(middle, CurrentY), NumLabelSize);
                 CurrentY += GenderLabelSize.y;
 
-                Rect PawnSettingRect = new Rect(0f, PawnDefLabelRect.yMin, width, PawnDefLabelHeight + PawnKindDefLabelSize.y + GenderLabelSize.y);
+                Rect PawnSettingRect = new Rect(0f, PawnDefLabelRect.yMin, width + 10f, PawnDefLabelHeight + PawnKindDefLabelSize.y + GenderLabelSize.y);
                 Widgets.DrawBoxSolid(PawnSettingRect, new ColorInt(33, 33, 33).ToColor);
                 Widgets.Label(PawnDefLabelRect, PawnDefLabel);
                 Widgets.Label(PawnKindDefLabelRect, PawnKindDefLabel);
                 Widgets.Label(FactionLabelRect, FactionLabel);
                 Widgets.Label(GenderLabelRect, GenderLabel);
+                Widgets.Label(NumLabelRect, NumLabel);
 
                 AddGap(MainInfoSub, ref CurrentY);
             }
@@ -281,9 +296,12 @@ namespace StoryFramework
                     WidgetRow infoRect = new WidgetRow(ContainerRect.width * 0.5f, CurY);
                     itemRow.Gap(10f);
                     GUI.color = ResolveColor(thingValue);
-                    if (thingValue.IsPawnKindDef && !thingValue.ThingDef.race.Humanlike)
+                    if ((thingValue.IsPawnKindDef && !thingValue.ThingDef.race.Humanlike) || thingValue.ThingDef != null)
                     {
-                        itemRow.Icon(thingValue.ThingDef.uiIcon);
+                        if (thingValue.ThingDef.uiIcon != BaseContent.BadTex)
+                        {
+                            itemRow.Icon(thingValue.ThingDef.uiIcon);
+                        }
                     }
                     GUI.color = Color.white;
                     itemRow.Label(label);

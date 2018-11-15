@@ -11,7 +11,7 @@ namespace StoryFramework
         Recruit,
         ConstructOrCraft,
         Own,
-        PawnCheck,
+        MapCheck,
         Research,
         Travel
     }

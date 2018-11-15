@@ -14,6 +14,7 @@ namespace StoryFramework
         public Mission parentMission;
         public ThingTracker thingTracker;
         public TravelTracker travelTracker;
+        public FailTracker failTracker;
         private bool startedOnce = false;
         private bool finishedOnce = false;
         private bool failedOnce = false;
@@ -41,6 +42,10 @@ namespace StoryFramework
             {
                 travelTracker = new TravelTracker(def.travelSettings);
             }
+            if(failTracker == null && def.failConditions != null)
+            {
+                failTracker = new FailTracker(def.failConditions);
+            }
         }
 
         public void ExposeData()
@@ -53,6 +58,10 @@ namespace StoryFramework
             Scribe_Deep.Look(ref thingTracker, "thingTracker", new object[]
             {
                 def.targetSettings
+            });
+            Scribe_Deep.Look(ref failTracker, "failTracker", new object[]
+            {
+                def.failConditions, true
             });
             Scribe_Values.Look(ref LatestState, "LatestState");
             Scribe_References.Look(ref parentMission, "parent");
@@ -84,13 +93,6 @@ namespace StoryFramework
                     {
                         travelTracker.UpdateCaravans();
                     }
-                    if (def.type == ObjectiveType.PawnCheck)
-                    {
-                        foreach (Map map in Find.Maps.Where(m => m.IsPlayerHome))
-                        {
-                            thingTracker.UpdatePawnCheck(map);
-                        }
-                    }
                     if (def.type == ObjectiveType.Own)
                     {
                         List<Thing> tempList = new List<Thing>();
@@ -104,6 +106,10 @@ namespace StoryFramework
                             }
                         }
                         thingTracker.CheckOwnedItems(tempList);
+                    }
+                    if(thingTracker != null)
+                    {
+                        thingTracker.TrackerTick();
                     }
                 }
                 if (ObjectiveComplete)
@@ -164,7 +170,7 @@ namespace StoryFramework
                     props.Notify_Execute(thingTracker?.LastTarget.Map ?? Find.AnyPlayerHomeMap, thingTracker?.LastTarget.IsValid ?? false ? thingTracker.LastTarget : lastTarget, def, IncidentCondition.Failed);
                 }
                 StoryManager.StoryHandler.AllStations.Station(this.def)?.objectives.Remove(this.def);
-                Messages.Message("FailedObjective_SMO".Translate() + " " + def.LabelCap, MessageTypeDefOf.NegativeEvent);
+                Messages.Message("FailedObjective_SMO".Translate() + ": " + def.LabelCap, MessageTypeDefOf.NegativeEvent);
                 failedOnce = true;
                 OnFail();
             }
@@ -229,7 +235,7 @@ namespace StoryFramework
                     case ObjectiveType.Recruit:
                     case ObjectiveType.Destroy:
                     case ObjectiveType.Own:
-                    case ObjectiveType.PawnCheck:
+                    case ObjectiveType.MapCheck:
                         return thingTracker.AllDone;
                     case ObjectiveType.Research:
                         return FinishedWork;
@@ -253,7 +259,7 @@ namespace StoryFramework
                 {
                     return false;
                 }
-                if(failedOnce || parentMission.LatestState == MOState.Failed || (def.requisites?.Impossible ?? false))
+                if(failedOnce || parentMission.LatestState == MOState.Failed || (def.requisites?.Impossible ?? false) || (failTracker?.Failed ?? false))
                 {
                     return true;
                 }
@@ -275,6 +281,14 @@ namespace StoryFramework
                     pawns.AddRange(map.mapPawns.AllPawns.Where(p => p.IsColonist && ( def.skillRequirements.NullOrEmpty() || def.skillRequirements.All(sr => sr.PawnSatisfies(p)))));
                 }
                 return pawns;
+            }
+        }
+
+        public bool HasTimer
+        {
+            get
+            {
+                return def.timer.GetTotalTime > 0f;
             }
         }
 

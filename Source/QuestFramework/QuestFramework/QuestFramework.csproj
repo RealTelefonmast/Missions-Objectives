@@ -51,9 +51,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Alert_NewMission.cs" />
+    <Compile Include="Alert_Timer.cs" />
     <Compile Include="CustomObjectiveSettings.cs" />
     <Compile Include="Dialog_ObjectiveInformation.cs" />
     <Compile Include="FailConditions.cs" />
+    <Compile Include="FailTracker.cs" />
     <Compile Include="IncidentProperties.cs" />
     <Compile Include="IncidentType.cs" />
     <Compile Include="IncidentWorker_Story.cs" />
@@ -63,8 +65,10 @@
     <Compile Include="ModContentPackWrapper.cs" />
     <Compile Include="ObjectiveStation.cs" />
     <Compile Include="ObjectiveTypeDef.cs" />
+    <Compile Include="PawnInfo.cs" />
     <Compile Include="PawnSettings.cs" />
     <Compile Include="RaidSettings.cs" />
+    <Compile Include="TargetLossSettings.cs" />
     <Compile Include="ThingSettings.cs" />
     <Compile Include="PositionFilter.cs" />
     <Compile Include="ScenPart_Story.cs" />

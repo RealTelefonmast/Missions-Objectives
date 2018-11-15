@@ -48,7 +48,7 @@ namespace StoryFramework
             {
                 return StoryManager.StoryHandler;
             }
-        }
+        }       
 
         public static bool CanBeMade(Def thingDef, ref bool result)
         {
@@ -91,6 +91,19 @@ namespace StoryFramework
                 return def.modExtensions.Any(m => m is StoryThingDefExtension);
             }
             return false;
+        }
+
+        [HarmonyPatch(typeof(UIRoot_Play))]
+        [HarmonyPatch("UIRootOnGUI")]
+        public static class UIRootPatch
+        {
+            public static void Postfix()
+            {
+                if (Current.Game != null && StoryHandler.showExtraInfo)
+                {
+                    StoryHandler.MissionInfoOnGUI();
+                }
+            }
         }
 
         [HarmonyPatch(typeof(SettleUtility))]
@@ -200,16 +213,18 @@ namespace StoryFramework
         static class RecruitPatch
         {
             private static PawnKindDef def;
+            private static PawnInfo pawnInfo;
 
             public static bool Prefix(Pawn recruiter, Pawn recruitee, float recruitChance, bool useAudiovisualEffects = true)
             {
                 def = recruitee.kindDef;
+                pawnInfo = new PawnInfo(recruitee);
                 return true;
             }
 
             public static void Postfix(Pawn recruiter, Pawn recruitee, float recruitChance, bool useAudiovisualEffects = true)
             {
-                StoryHandler.Missions.ForEach(m => m.objectives.Where(o => o.CurrentState == MOState.Active).Do(o => o.thingTracker?.ProcessTarget(def, recruitee.Position, recruitee.Map, ObjectiveType.Recruit, null, recruitee)));          
+                StoryHandler.Missions.ForEach(m => m.objectives.Where(o => o.CurrentState == MOState.Active).Do(o => o.thingTracker?.ProcessTarget(def, recruitee.Position, recruitee.Map, ObjectiveType.Recruit, null, recruitee, pawnInfo)));          
             }
         }
 
@@ -271,14 +286,10 @@ namespace StoryFramework
             {
                 if (!respawningAfterLoad && (__instance?.Map?.IsPlayerHome ?? false) && __instance.def.mote == null)
                 {
-                    if(__instance is Pawn pawn)
+                    StoryHandler.Missions.ForEach(m => m.objectives.Where(o => o.CurrentState == MOState.Active).Do(o =>
                     {
-                        StoryHandler.Missions.ForEach(m => m.objectives.Where(o => o.CurrentState == MOState.Active).Do(o =>
-                        {
-                            o.thingTracker?.ProcessTarget(pawn.kindDef, pawn.Position, pawn.Map, ObjectiveType.PawnCheck, null, pawn);
-                        }
-                    ));
-                    }
+                        o.thingTracker?.ProcessTarget(__instance.def, __instance.Position, __instance.Map, ObjectiveType.MapCheck, __instance, __instance as Pawn);
+                    }));
                     Dictionary<ObjectiveDef, List<ThingDef>> stations = StoryHandler.StationDefs();
                     foreach (ObjectiveDef objective in stations.Keys)
                     {
@@ -321,10 +332,25 @@ namespace StoryFramework
                 DamageInfo dinfo2 = new DamageInfo();
                 if (dinfo.HasValue)
                 { dinfo2 = dinfo.Value; }
-                if (dinfo2.Instigator != null && dinfo2.Instigator.Faction == Faction.OfPlayerSilentFail)
+                bool killedByPlayer = dinfo2.Instigator != null && dinfo2.Instigator.Faction == Faction.OfPlayerSilentFail;
+                StoryHandler.Missions.Where(m => m.LatestState == MOState.Active).Do(m =>
                 {
-                    StoryHandler.Missions.ForEach(m => m.objectives.Where(o => o.CurrentState == MOState.Active).Do(o => o.thingTracker?.ProcessTarget(temp, tempPos, tempMap, ObjectiveType.Destroy)));
-                }
+                    if (__instance.Faction == Faction.OfPlayerSilentFail)
+                    {
+                        m.failTracker?.ProcessTarget(__instance.def);
+                    }
+                    m.objectives.Where(o => o.CurrentState == MOState.Active).Do(o =>
+                    {
+                        if (__instance.Faction == Faction.OfPlayerSilentFail)
+                        {
+                            o.failTracker?.ProcessTarget(__instance.def);
+                        }
+                        if (killedByPlayer)
+                        {
+                            o.thingTracker?.ProcessTarget(temp, tempPos, tempMap, ObjectiveType.Destroy);
+                        }
+                    });
+                });
             }
         }
 
@@ -348,10 +374,26 @@ namespace StoryFramework
                 DamageInfo dinfo2 = new DamageInfo();
                 if (dinfo.HasValue)
                 { dinfo2 = dinfo.Value; }
-                if (dinfo2.Instigator != null && dinfo2.Instigator.Faction == Faction.OfPlayerSilentFail)
+                bool killedByPlayer = dinfo2.Instigator != null && dinfo2.Instigator.Faction == Faction.OfPlayerSilentFail;
+                StoryHandler.Missions.Where(m => m.LatestState == MOState.Active).Do(m =>
                 {
-                    StoryHandler.Missions.ForEach(m => m.objectives.Where(o => o.CurrentState == MOState.Active).Do(o => o.thingTracker?.ProcessTarget(temp, tempPos, tempMap, ObjectiveType.Kill, null, __instance)));
-                }
+                    if (__instance.IsColonist)
+                    {
+                        m.failTracker?.ProcessTarget(__instance.def, !killedByPlayer);
+                    }
+                    m.objectives.Where(o => o.CurrentState == MOState.Active).Do(o =>
+                    {
+                        if (__instance.IsColonist)
+                        {
+                            o.failTracker?.ProcessTarget(__instance.def, !killedByPlayer);
+                        }
+                        if (killedByPlayer)
+                        {
+                            o.thingTracker?.ProcessTarget(temp, tempPos, tempMap, ObjectiveType.Kill, null, null, new PawnInfo(__instance));
+                        }
+                    });
+                });
+
             }
         }
     }

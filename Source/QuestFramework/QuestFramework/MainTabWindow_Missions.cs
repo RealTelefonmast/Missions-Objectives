@@ -11,6 +11,13 @@ using Harmony;
 
 namespace StoryFramework
 {
+    public enum TabMode
+    {
+        Missions,
+        Themes,
+        Settings
+    }
+
     public class MainTabWindow_Missions : MainTabWindow
     {
         private StoryManager StoryManager = StoryManager.StoryHandler;
@@ -19,11 +26,11 @@ namespace StoryFramework
         private Vector2 missionInfoScrollPos = Vector2.zero;
         private Dictionary<ObjectiveDef, List<Pawn>> cachedPawns = new Dictionary<ObjectiveDef, List<Pawn>>();
         private MissionDef selectedLockedMission;
-        private bool TabFlag = true;
+        private TabMode TabMode = TabMode.Missions;
         private bool showLocked = false;
         public const float Height = 630f;
         public const float LeftWidth = 250f;
-        public const float YOffset = (720f - Height) / 2f;       
+        public const float YOffset = (720f - Height) / 2f;
 
         //Images
         private int currentImage = 0;
@@ -94,17 +101,21 @@ namespace StoryFramework
 
         public void SetActiveObjective()
         {
-            for (int i = 0; i < SelectedMission.objectives.Count; i++)
+            if (SelectedObjective == null)
             {
-                Objective objective = SelectedMission.objectives[i];
-                if (objective.CurrentState == MOState.Active)
+                for (int i = 0; i < SelectedMission.objectives.Count; i++)
                 {
-                    SelectedObjective = objective;
+                    Objective objective = SelectedMission.objectives[i];
+                    if (objective.CurrentState == MOState.Active)
+                    {
+                        SelectedObjective = objective;
 
-                    return;
+                        return;
+                    }
                 }
+                SelectedObjective = null;
             }
-            SelectedObjective = null;
+            return;
         }
 
         private void CachePawns(bool update)
@@ -201,57 +212,56 @@ namespace StoryFramework
             Rect tabRect = new Rect(inRect.x + 10f, inRect.y - 20f, inRect.width - 30f, 20f);
             string missions = "Missions_SMO".Translate();
             string themes = "Themes_SMO".Translate();
-            string locked = "LockedTab_SMO".Translate();
+            string settings = "Settings_SMO".Translate();
             Vector2 v1 = Text.CalcSize(missions);
             Vector2 v2 = Text.CalcSize(themes);
-            Vector2 v3 = Text.CalcSize(locked);
+            Vector2 v3 = Text.CalcSize(settings);
             v1.x += 6;
             v2.x += 6;
             v3.x += 6;
             Rect missionTab = new Rect(new Vector2(tabRect.x, tabRect.y), v1);
             Rect themeTab = new Rect(new Vector2(missionTab.xMax, missionTab.y), v2);
-            Rect lockedButton = new Rect(new Vector2(themeTab.xMax, themeTab.y), v3);
+            Rect settingsTab = new Rect(new Vector2(themeTab.xMax, themeTab.y), v3);
 
             Text.Anchor = TextAnchor.MiddleCenter;           
             StoryUtils.DrawMenuSectionColor(missionTab, 1, StoryMats.defaultFill, StoryMats.defaultBorder);
             Widgets.Label(missionTab, missions);
             StoryUtils.DrawMenuSectionColor(themeTab, 1, StoryMats.defaultFill, StoryMats.defaultBorder);
             Widgets.Label(themeTab, themes);
+            /*
             float opacity = Mouse.IsOver(lockedButton) ? 1f : 0.5f;
             ColorInt border = showLocked ? new ColorInt(142, 200, 154, (int)(255f * opacity)) : new ColorInt(243, 153, 123, (int)(255f * opacity));
             StoryUtils.DrawMenuSectionColor(lockedButton, 1, StoryMats.defaultFill, border);
-            if(Widgets.ButtonInvisible(lockedButton, true))
-            {               
-                showLocked = !showLocked;
-                if (!showLocked)
-                {
-                    SoundDefOf.Checkbox_TurnedOff.PlayOneShotOnCamera(null);
-                    selectedLockedMission = null;
-                }
-                else
-                {
-                    SoundDefOf.Checkbox_TurnedOn.PlayOneShotOnCamera(null);
-                }
-            }
-            Widgets.Label(lockedButton, locked);
+            */
+            StoryUtils.DrawMenuSectionColor(settingsTab, 1, StoryMats.defaultFill, StoryMats.defaultBorder);
+            Widgets.Label(settingsTab, settings);
             GUI.color = new Color(0.8f, 0.8f, 0.8f);
             if (Widgets.ButtonInvisible(missionTab))
             {
                 SoundDefOf.Click.PlayOneShotOnCamera(null);
-                TabFlag = true;
+                TabMode = TabMode.Missions;
             }
-            if (Mouse.IsOver(missionTab) || TabFlag)
+            if (Mouse.IsOver(missionTab) || TabMode == TabMode.Missions)
             {                
                 Widgets.DrawBox(missionTab, 1);
             }
             if (Widgets.ButtonInvisible(themeTab))
             {
                 SoundDefOf.Click.PlayOneShotOnCamera(null);
-                TabFlag = false;
+                TabMode = TabMode.Themes;
             }
-            if (Mouse.IsOver(themeTab) || !TabFlag)
+            if (Mouse.IsOver(themeTab) || TabMode == TabMode.Themes)
             {
                 Widgets.DrawBox(themeTab, 1);
+            }
+            if (Widgets.ButtonInvisible(settingsTab))
+            {
+                SoundDefOf.Click.PlayOneShotOnCamera(null);
+                TabMode = TabMode.Settings;
+            }
+            if (Mouse.IsOver(settingsTab) || TabMode == TabMode.Settings)
+            {
+                Widgets.DrawBox(settingsTab, 1);
             }
             GUI.color = Color.white;
 
@@ -262,7 +272,7 @@ namespace StoryFramework
             float viewHeight = 0f;
             float selectionYPos = 0f;
 
-            if (TabFlag)
+            if (TabMode == TabMode.Missions)
             {
                 //Mission Tab
                 GUI.BeginGroup(rect);
@@ -362,7 +372,7 @@ namespace StoryFramework
                 Widgets.EndScrollView();
                 GUI.EndGroup();
             }
-            else
+            else if(TabMode == TabMode.Themes)
             {
                 //Theme Tab
                 GUI.BeginGroup(rect);
@@ -415,6 +425,23 @@ namespace StoryFramework
                 }
                 Widgets.EndScrollView();
                 GUI.EndGroup();
+            }
+            else
+            {
+                //Settings Tab
+                Text.Anchor = TextAnchor.MiddleLeft;
+                Listing_Standard listing = new Listing_Standard();
+                listing.Begin(rect);
+                listing.Gap(6f);
+                listing.CheckboxLabeled("LockedSettings_SMO".Translate(), ref showLocked, "LockedSettingsToolTip_SMO".Translate());
+                listing.GapLine(6f); 
+                listing.CheckboxLabeled("ShowExtraInfo_SMO".Translate(), ref StoryManager.showExtraInfo, "ShowExtraInfoToolTip_SMO".Translate());
+                listing.GapLine(6f);
+                string str = "TimerAlertMinHours_SMO".Translate() + ": " + StoryManager.timerAlertMinHours + "h";
+                listing.Label(str, -1, null);
+                StoryManager.timerAlertMinHours = Mathf.Round(listing.Slider(StoryManager.timerAlertMinHours, 1f, 24f));
+                listing.End();
+                Text.Anchor = 0;
             }
         }
 
@@ -470,6 +497,7 @@ namespace StoryFramework
             {
                 Widgets.DrawHighlight(rect);
             }
+            
             float offset = (rect.height - 24f) * 0.5f;
             WidgetRow tab = new WidgetRow(rect.x + offset, rect.y + offset);
             MOState state = mission.LatestState;
@@ -560,18 +588,23 @@ namespace StoryFramework
                 string stuffLabel = tv.Stuff != null ? tv.ResolvedStuff.LabelCap : "Any_SMO".Translate();
                 string qualityLabel = !thingDef.CountAsResource ? tv.CustomQuality ? " (" + tv.QualityCategory.GetLabel() + ")" : "" : "";
                 string fullLabel = "  - " + (tv.ResolvedStuff != null ? stuffLabel + " " : "") + thingDef.LabelCap + qualityLabel + " (x" + tv.value + ")";
-                Vector2 labelSize = Text.CalcSize(fullLabel);
-                bool oversized = labelSize.x > selection.width;
-                string label = oversized ? "  - " + tv.ThingDef.LabelCap + "(...)" : fullLabel;
-                Widgets.Label(selection, label);
-                if (oversized)
+                if(Text.CalcSize(fullLabel).x > selection.width)
                 {
-                    TooltipHandler.TipRegion(selection, fullLabel); 
+                    Widgets.DrawHighlightIfMouseover(selection);
+                    TooltipHandler.TipRegion(selection, fullLabel);
+                    fullLabel = fullLabel.Truncate(selection.width);
                 }
+                Widgets.Label(selection, fullLabel);
             });
             GeneralInfo(new Rect(0f, CurY, InfoRect.width, 0f), ref CurY, requisites.jobs, "MissionInfoJobs_SMO".Translate(),null, delegate(Rect selection, JobDef def)
             {
-                string label = "  ..." + def.reportString;
+                string label = ("  ..." + def.reportString);
+                if(Text.CalcSize(label).x > selection.width)
+                {
+                    Widgets.DrawHighlightIfMouseover(selection);
+                    TooltipHandler.TipRegion(selection, label);
+                    label = label.Truncate(selection.width);
+                }
                 Widgets.Label(selection, label);
             });
             GUI.EndGroup();
@@ -619,16 +652,22 @@ namespace StoryFramework
                 bool left = i % 2 == 0;
                 Rect half = left ? Listing.LeftHalf() : Listing.RightHalf();
                 float pos = left ? leftPos : rightPos;
+                string label = ("  - " + (list[i] as Def)?.LabelCap ?? ""),
+                       labelTrun = label.Truncate(half.width);
                 Rect selection = new Rect(half.x, pos, half.width, 22f);
-                string label = "  - " + (list[i] as Def)?.LabelCap ?? "";
                 if ((!(list[i] as ResearchProjectDef)?.IsFinished ?? false) || ((list[i] as MissionDef)?.CurrentState == MOState.Active) || (list[i] as ObjectiveDef)?.CurrentState == MOState.Active || (list[i] as ThingValue)?.ThingDef != null)
                 {
-                    if(action2 != null)
+                    if (Text.CalcSize(label).x > selection.width)
+                    {
+                        Widgets.DrawHighlightIfMouseover(selection);
+                        TooltipHandler.TipRegion(selection, label);
+                    }
+                    if (action2 != null)
                     {
                         action2(selection, list[i]);
                     }
                     else
-                    if (Widgets.ButtonText(selection, label, false, true))
+                    if (Widgets.ButtonText(selection, labelTrun, false, true))
                     {
                         SoundDefOf.Click.PlayOneShotOnCamera(null);
                         action(list[i]);
@@ -639,12 +678,17 @@ namespace StoryFramework
                     if (action2 != null)
                     {
                         action2(selection, list[i]);
-
                     }
                     else
-                    {
-                        Widgets.Label(selection, label);
+                    {                     
+                        if (Text.CalcSize(label).x > selection.width)
+                        {
+                            Widgets.DrawHighlightIfMouseover(selection);
+                            TooltipHandler.TipRegion(selection, label);
+                        }
+                        Widgets.Label(selection, labelTrun);
                     }
+
                 }
                 if (left) { leftPos += 22f; } else { rightPos += 22f; }
             }
@@ -986,40 +1030,12 @@ namespace StoryFramework
                     label = Mathf.RoundToInt(objective.GetWorkDone) + "/" + def.workAmount;
                 }
                 else
-                if (def.type == ObjectiveType.ConstructOrCraft || def.type == ObjectiveType.Own || def.type == ObjectiveType.PawnCheck || def.type == ObjectiveType.Recruit || def.type == ObjectiveType.Destroy || def.type == ObjectiveType.Kill)
+                if (def.type == ObjectiveType.ConstructOrCraft || def.type == ObjectiveType.Own || def.type == ObjectiveType.MapCheck || def.type == ObjectiveType.Recruit || def.type == ObjectiveType.Destroy || def.type == ObjectiveType.Kill)
                 {
-                    if (def.targetSettings.pawnSettings != null)
-                    {
-                        if (objective.CurrentState == MOState.Finished)
-                        {
-                            pct = 1f;
-                            l = r = def.targetSettings.pawnSettings.minAmount;
-                        }
-                        else
-                        {
-                            pct = (l = (float)objective.thingTracker.GetTargetCount) / (r = (float)def.targetSettings.pawnSettings.minAmount);
-                        }
-                    }
-                    else
-                    if (def.targetSettings.thingSettings != null)
-                    {
-                        if (objective.CurrentState == MOState.Finished)
-                        {
-                            pct = 1f;
-                            l = r = def.targetSettings.thingSettings.minAmount;
-                        }
-                        else
-                        {
-                            pct = (l = (float)objective.thingTracker.GetTargetCount) / (r = (float)def.targetSettings.thingSettings.minAmount);
-                        }
-                    }
-                    else
-                    if (!objective.thingTracker.TargetsDone.ToList().NullOrEmpty())
-                    {
-                        ThingValue maxValue = objective.thingTracker.TargetsDone.ToList().Find(tv => tv.Value == objective.thingTracker.TargetsDone.Values.Max()).Key;
-                        pct = any ? (l = (float)objective.thingTracker.TargetsDone[maxValue]) / (r = (float)def.targetSettings.targets.Find(tv => tv == maxValue).value) :
-                                      (l = (float)objective.thingTracker.GetTargetCount) / (r = (float)def.targetSettings.targets.Sum(tv => tv.value));
-                    }
+                    //ThingValue maxValue = objective.thingTracker.TargetsDone.ToList().Find(tv => tv.Value == objective.thingTracker.TargetsDone.Values.Max()).Key;
+                    int maxInt = ResolveBarAnyMax(objective, out int maxValue);
+                    pct = any ? (maxInt > 0 ? (l = (float)maxValue) / (r = (float)maxInt) : 0f) :
+                                (l = (float)objective.thingTracker.GetTotalCount) / (r = (float)objective.thingTracker.GetTotalNeededCount);
                     label = l + "/" + r;
                 }
             }
@@ -1042,7 +1058,7 @@ namespace StoryFramework
                 case ObjectiveType.Kill:
                     material = StoryMats.red;
                     break;
-                case ObjectiveType.PawnCheck:
+                case ObjectiveType.MapCheck:
                 case ObjectiveType.Recruit:
                 case ObjectiveType.Own:
                     material = StoryMats.green;
@@ -1059,6 +1075,51 @@ namespace StoryFramework
             Text.Anchor = TextAnchor.MiddleCenter;
             Widgets.Label(rect, label);
             Text.Anchor = 0;
+        }
+
+        private int ResolveBarAnyMax(Objective objective, out int max)
+        {
+            TargetSettings settings = objective.def.targetSettings;
+            ThingTracker tracker = objective.thingTracker;
+            int num = 0;
+            max = 0;
+            ThingValue tv = tracker.TargetsDone.Where(k => k.Value == tracker.TargetsDone.Min(k2 => k2.Value)).FirstOrDefault().Key;
+
+            int pawnMin = settings.pawnSettings?.minAmount ?? 0;
+            int thingMin = settings.thingSettings?.minAmount ?? 0;
+            int targetsMin = settings.targets.Find(t => t == tv).value;
+            float pawns = 0f;
+            if (pawnMin > 0)
+            {
+                pawns = (float)tracker.GetPawnCount / (float)pawnMin;
+            }
+            float things = 0f;
+            if (thingMin > 0)
+            {
+               things = (float)tracker.GetThingCount / (float)thingMin;
+            }
+            float targets = 0f;
+            if (targetsMin > 0)
+            {
+                targets = (float)tracker.GetTargetCount / (float)targetsMin;
+            }
+            float maxpct = Mathf.Max(pawns, things, targets);
+            if (maxpct == pawns && pawnMin > 0)
+            {
+                num = pawnMin;
+                max = tracker.GetPawnCount;
+            }
+            if(maxpct == things && thingMin > 0)
+            {
+                num = thingMin;
+                max = tracker.GetThingCount;
+            }
+            if (maxpct == targets && targetsMin > 0)
+            {
+                num = targetsMin;
+                max = tracker.TargetsDone[tv];
+            }
+            return num;
         }
 
         private string ResolveTargetLabel(ObjectiveDef def)

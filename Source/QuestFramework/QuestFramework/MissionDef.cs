@@ -13,6 +13,7 @@ namespace StoryFramework
         public List<ObjectiveDef> objectives = new List<ObjectiveDef>();
         public Requisites requisites = new Requisites();
         public TimerSettings timer = new TimerSettings();
+        public FailConditions failConditions;
         public bool chronological = false;
         public bool hideOnComplete = false;
         public bool repeatable = false;
@@ -106,6 +107,14 @@ namespace StoryFramework
         {
             failed = CurrentState == MOState.Failed ? true : false;
             return CurrentState == MOState.Finished || CurrentState == MOState.Failed;
+        }
+
+        public bool IsFinished
+        {
+            get
+            {
+                return CurrentState == MOState.Finished;
+            }
         }
 
         public bool IsSeen

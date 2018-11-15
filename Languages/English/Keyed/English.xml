@@ -18,8 +18,30 @@
 	<Item_SMO>Item</Item_SMO>
 	<Chance_SMO>Chance</Chance_SMO>
 	
-	<LockedTab_SMO>Show Locked</LockedTab_SMO>
+	<LockedSettingsToolTip_SMO>Select whether locked missions should be seen or not in the 'Missions' tab.</LockedSettingsToolTip_SMO>
+	<LockedSettings_SMO>Show locked missions</LockedSettings_SMO>
 	<Locked_SMO>Locked Missions</Locked_SMO>
+	<Settings_SMO>Settings</Settings_SMO>
+	
+	<ShowExtraInfo_SMO>Show extra info</ShowExtraInfo_SMO>
+	<ShowExtraInfoToolTip_SMO>Select whether additional information of the currently selected mission and objective should be shown on the right side.</ShowExtraInfoToolTip_SMO>
+	<TimerAlertMinHours_SMO>Timer alert threshold</TimerAlertMinHours_SMO>
+	<TimerAlert_SMO>Time is running out!</TimerAlert_SMO>
+	<TimerAlertDesc_SMO>The timer is running out for:\n{0}</TimerAlertDesc_SMO>
+	
+	
+	<!--Extra Info-->
+	<Mission_SMO>Mission {0} fails if you</Mission_SMO>
+	<Objective_SMO>Objective {0} fails if you</Objective_SMO>
+	<MissionFailed_SMO>Mission {0}: Failed.</MissionFailed_SMO>
+	<ObjectiveFailed_SMO>Objective {0}: Failed.</ObjectiveFailed_SMO>
+	<FailCon_ObjectiveFail>Fail these objectives</FailCon_ObjectiveFail>
+	<FailCon_ObjectiveDone>Do these objectives</FailCon_ObjectiveDone>
+	<FailCon_MissionFail>Fail these missions</FailCon_MissionFail>
+	<FailCon_MissionDone>Do these missions</FailCon_MissionDone>
+	<FailCon_DeadColonists>Lose colonists</FailCon_DeadColonists>
+	<FailCon_Targets>Lose these things</FailCon_Targets>
+	<FailCon_TargetsAny>Lose any of these things</FailCon_TargetsAny>
 	
 	<!--ScenPart-->
 	<ScenPart_SMO>Start with the following mission sets.</ScenPart_SMO>
@@ -54,6 +76,7 @@
 	<ThingValueInfo_SMO>Amount:	{0}\nMaterial:	{1}\nQuality:	{2}</ThingValueInfo_SMO>
 	
 	<Any_SMO>Any</Any_SMO>
+	<AnyPawn_SMO>any pawn</AnyPawn_SMO>
 	
 	<SkillReq_SMO>Capable Pawn</SkillReq_SMO>
 	<SkillReqPlural_SMO>Capable Pawns</SkillReqPlural_SMO>
@@ -84,22 +107,27 @@
 	<MissionAlert_SMO>New missions!</MissionAlert_SMO>
 	<MissionAlertDesc_SMO>New missions are now available.\n\nCheck out the Missions tab!</MissionAlertDesc_SMO>
 	
-	<FinishedObjective_SMO>Finished</FinishedObjective_SMO>
-	<FailedObjective_SMO>Failed to do</FailedObjective_SMO>
+	<FinishedObjective_SMO>Finished Objective</FinishedObjective_SMO>
+	<FailedObjective_SMO>Failed Objective</FailedObjective_SMO>
+	<FinishedMission_SMO>Finished Mission</FinishedMission_SMO>
+	<FailedMission_SMO>Failed Mission</FailedMission_SMO>
 	
 	<AnyStuff_SMO>Anything</AnyStuff_SMO>
 	<ThingSettingsConstructOrCraft_SMO>You need to craft items with the following properties.</ThingSettingsConstructOrCraft_SMO>
+	<ThingSettingsMapCheck_SMO>You need items with the following properties on your map.</ThingSettingsMapCheck_SMO>
 	<ThingSettingsOwn_SMO>You need to own items with the following properties.</ThingSettingsOwn_SMO>
 	<ThingSettingsDestroy_SMO>You need to destroy items with the following properties.</ThingSettingsDestroy_SMO>
 	<ThingSettingsStuff_SMO>Made Of: {0}</ThingSettingsStuff_SMO>
 	<ThingSettingsQuality_SMO>Minimum Quality: {0}</ThingSettingsQuality_SMO>
 	
-	<PawnSettingsPawnCheck_SMO>You need {0} with the following properties on your map.</PawnSettingsPawnCheck_SMO>
-	<PawnSettingsKill_SMO>You need to kill {0} with the following properties.</PawnSettingsKill_SMO>
-	<PawnSettingsRecruit_SMO>You need to recruit {0} with the following properties.</PawnSettingsRecruit_SMO>
+	<PawnSettingsMapCheck_SMO>You need pawns with the following properties on your map.</PawnSettingsMapCheck_SMO>
+	<PawnSettingsKill_SMO>You need to kill pawns with the following properties.</PawnSettingsKill_SMO>
+	<PawnSettingsRecruit_SMO>You need to recruit pawns with the following properties.</PawnSettingsRecruit_SMO>
 	<PawnSettingsKind_SMO>Of kind: {0}</PawnSettingsKind_SMO>
 	<PawnSettingsFaction_SMO>From faction: {0}</PawnSettingsFaction_SMO>
 	<PawnSettingsGender_SMO>With gender: {0}</PawnSettingsGender_SMO>
+	
+	<MapCheckCount_SMO>Current Count: {0}</MapCheckCount_SMO>
 	
 	<BarInput_SMO>Click here to check the current map for the objective.</BarInput_SMO>
 	
@@ -113,7 +141,7 @@
 	<Kill_SMO>This objective requires you to kill the following creatures and people.</Kill_SMO>
 	<KillAny_SMO>This objective requires you to kill any of the following creatures and people.</KillAny_SMO>
 	<Own_SMO>This objective requires you to own the following things.</Own_SMO>
-	<PawnCheck_SMO>This objective requires you to have specific pawns on your map.</PawnCheck_SMO>
+	<MapCheck_SMO>This objective requires you to have specific things or pawns on your map.</MapCheck_SMO>
 	<OwnAny_SMO>This objective requires you to own any of the following things.</OwnAny_SMO>
 	<Recruit_SMO>This objective requires you to recruit the following people.</Recruit_SMO>
 	<RecruitAny_SMO>This objective requires you to recruit any of the following people.</RecruitAny_SMO>
@@ -125,7 +153,7 @@
 	<Destroy_Label>Destroy</Destroy_Label>
 	<Kill_Label>Kill</Kill_Label>
 	<Own_Label>Own</Own_Label>
-	<PawnCheck_Label>Pawn Check</PawnCheck_Label>
+	<MapCheck_Label>Map Check</MapCheck_Label>
 	<Recruit_Label>Recruit</Recruit_Label>
 	<Research_Label>Research</Research_Label>
 	<Travel_Label>Travel</Travel_Label>

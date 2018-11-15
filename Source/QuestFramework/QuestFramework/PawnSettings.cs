@@ -14,10 +14,8 @@ namespace StoryFramework
         public FactionDef factionDef;
         public Gender? gender = Gender.None;
         public int minAmount = 1;
-        public bool anyHediff = false;
-        public bool anySkill = false;
 
-        public bool PawnSatisfies(Pawn pawn)
+        public bool PawnSatisfies(PawnInfo pawn)
         {
             if (def != null && pawn.def != def)
             {
@@ -27,7 +25,7 @@ namespace StoryFramework
             {
                 return false;
             }
-            if (factionDef != null && (pawn.Faction != null && pawn.Faction.def != factionDef))
+            if (factionDef != null && (pawn.factionDef != null && pawn.factionDef != factionDef))
             {
                 return false;
             }
@@ -38,6 +36,7 @@ namespace StoryFramework
             return true;
         }
 
+        /*
         public bool MapSatisfies(Map map)
         {
             int count = 0;
@@ -54,5 +53,6 @@ namespace StoryFramework
             }
             return count >= minAmount;
         }
+        */
     }
 }
