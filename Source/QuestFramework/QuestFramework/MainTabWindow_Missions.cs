@@ -75,7 +75,7 @@ namespace StoryFramework
 
         public List<Mission> MissionsForMod(ModContentPack mcp)
         {
-            return AvailableMissions.Where(m => mcp.AllDefs.Contains(m.def) && m.Visible).ToList();
+            return AvailableMissions.Where(m => mcp.AllDefs.Contains(m.def) && m.Visible)?.ToList();
         }
 
         public void UpdateTheme(ModContentPack mcp)
@@ -100,20 +100,19 @@ namespace StoryFramework
         }
 
         public void SetActiveObjective()
-        {
-            if (SelectedObjective == null)
+        {           
+            if (SelectedObjective == null || !SelectedMission.objectives.Contains(SelectedObjective))
             {
+                SelectedObjective = SelectedMission.objectives.FirstOrDefault();
                 for (int i = 0; i < SelectedMission.objectives.Count; i++)
                 {
                     Objective objective = SelectedMission.objectives[i];
                     if (objective.CurrentState == MOState.Active)
                     {
                         SelectedObjective = objective;
-
                         return;
                     }
                 }
-                SelectedObjective = null;
             }
             return;
         }
@@ -228,11 +227,6 @@ namespace StoryFramework
             Widgets.Label(missionTab, missions);
             StoryUtils.DrawMenuSectionColor(themeTab, 1, StoryMats.defaultFill, StoryMats.defaultBorder);
             Widgets.Label(themeTab, themes);
-            /*
-            float opacity = Mouse.IsOver(lockedButton) ? 1f : 0.5f;
-            ColorInt border = showLocked ? new ColorInt(142, 200, 154, (int)(255f * opacity)) : new ColorInt(243, 153, 123, (int)(255f * opacity));
-            StoryUtils.DrawMenuSectionColor(lockedButton, 1, StoryMats.defaultFill, border);
-            */
             StoryUtils.DrawMenuSectionColor(settingsTab, 1, StoryMats.defaultFill, StoryMats.defaultBorder);
             Widgets.Label(settingsTab, settings);
             GUI.color = new Color(0.8f, 0.8f, 0.8f);
@@ -1008,7 +1002,7 @@ namespace StoryFramework
             float l = 0,
                   r = 0;
             bool any = def.targetSettings?.any ?? false;
-            if(def.type == ObjectiveType.Travel)
+            if (def.type == ObjectiveType.Travel)
             {
                 TravelSettings settings = def.travelSettings;
                 if (settings.mode == TravelMode.Explore || settings.mode == TravelMode.Reach)
@@ -1042,11 +1036,12 @@ namespace StoryFramework
             if (def.customSettings.progressBarColor != null)
             {
                 material = SolidColorMaterials.NewSolidColorTexture(def.customSettings.progressBarColor.ToColor);
+                return;
             }
             switch (def.type)
             {
                 case ObjectiveType.Custom:
-                    material = StoryMats.grey;                
+                    material = StoryMats.grey;              
                     break;               
                 case ObjectiveType.Research:
                     material = StoryMats.blue;
@@ -1083,7 +1078,7 @@ namespace StoryFramework
             ThingTracker tracker = objective.thingTracker;
             int num = 0;
             max = 0;
-            ThingValue tv = tracker.TargetsDone.Where(k => k.Value == tracker.TargetsDone.Min(k2 => k2.Value)).FirstOrDefault().Key;
+            ThingValue tv = tracker.TargetsDone.Where(k => k.Value == tracker.TargetsDone.Max(k2 => k2.Value)).FirstOrDefault().Key;
 
             int pawnMin = settings.pawnSettings?.minAmount ?? 0;
             int thingMin = settings.thingSettings?.minAmount ?? 0;

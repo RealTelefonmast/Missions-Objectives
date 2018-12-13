@@ -30,7 +30,11 @@ namespace StoryFramework
 
         public override IEnumerable<string> ConfigErrors()
         {
-            if (ParentDef.repeatable)
+            if(ParentDef == null)
+            {
+                Log.Warning("Objective '" + defName + "' is not listed in a mission so far.");
+            }
+            if (ParentDef?.repeatable ?? false)
             {
                 if(timer.GetTotalTime > 0)
                 {
@@ -64,25 +68,29 @@ namespace StoryFramework
                 if (targetSettings == null)
                 {
                     yield return "TargetSettings not set up!";
-                }
+                }           
+                else if (targetSettings.targets.NullOrEmpty() && targetSettings.thingSettings == null && targetSettings.pawnSettings == null)
+                {
+                    yield return "TargetSettings does not define any targets in the 'targets' list, 'thingSettings' or 'pawnSettings'. Make sure that at least one is used and filled.";
+                }                
                 else if ((type == ObjectiveType.ConstructOrCraft || type == ObjectiveType.Own) && targetSettings.pawnSettings != null)
                 {
-                    yield return "Objective Type " + type + " does not support pawnSettings.";
+                    yield return "Objective Type '" + type + "' does not support pawnSettings.";
                 }
                 else if ((type == ObjectiveType.Destroy || type == ObjectiveType.Kill || type == ObjectiveType.Recruit) && targetSettings.thingSettings != null)
                 {
-                    yield return "Objective Type " + type + " does not support thingSettings.";
+                    yield return "Objective Type '" + type + "' does not support thingSettings.";
                 }
                 else if (type == ObjectiveType.Kill || type == ObjectiveType.Recruit)
                 {
                     if (targetSettings.targets.Any(t => !t.IsPawnKindDef))
                     {
-                        yield return  "Target list contains ThingDefs although " + type + " does not support it.";
+                        yield return  "Target list contains ThingDefs although '" + type + "' does not support it.";
                     }
                 }
                 else if (type != ObjectiveType.Kill && type != ObjectiveType.Recruit && (targetSettings?.targets.Any(tv => tv.IsPawnKindDef) ?? false))
                 {
-                    yield return "Target list contains PawnKindDefs although " + type + " does not support it.";
+                    yield return "Target list contains PawnKindDefs although '" + type + "' does not support it.";
                 }
             }
             if (type == ObjectiveType.Research)

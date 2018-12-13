@@ -229,14 +229,9 @@ namespace StoryFramework
                 {
                     if (things[i].ThingIsValid(targetSettings.thingSettings))
                     {
-                        Log.Message("Tracked Things: " + trackedThings.ToStringSafeEnumerable());
                         if (!trackedThings.Contains(things[i]) && trackedThings.Count < targetSettings.thingSettings.minAmount)
                         {
                             trackedThings.Add(things[i]);
-                        }
-                        if (!CurrentlyOwnedTargets.TryGetValue(things[i], out int lastStack))
-                        {
-                            //CurrentlyOwnedTargets.Add(things[i], things[i].stackCount);
                         }
                     }
                 }
@@ -319,13 +314,6 @@ namespace StoryFramework
                             trackedThings.Add(thing);
                             LastTarget = thing;
                         }
-                        /*
-                        if (!CurrentlyOwnedTargets.TryGetValue(craftedThing, out int value))
-                        {
-                            CurrentlyOwnedTargets.Add(craftedThing, craftedThing.stackCount);
-                            LastTarget = craftedThing;
-                        }
-                        */
                     }
                 }
                 if (targetSettings.pawnSettings != null)

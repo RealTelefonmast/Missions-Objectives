@@ -19,6 +19,10 @@ namespace StoryFramework
         {
             List<ThingDef> defList = new List<ThingDef>();
             List<PawnKindDef> pawnList = new List<PawnKindDef>();
+            if (targets.NullOrEmpty())
+            {
+                return;
+            }
             foreach(ThingValue tv in targets)
             {
                 if(tv.PawnKindDef == null || tv.ThingDef == null)

@@ -118,7 +118,6 @@ namespace StoryFramework
                 if (selectedMission != null && selectedMission.def.failConditions != null)
                 {
                     bool failed = selectedMission.LatestState == MOState.Failed;
-                    Log.Message("Height: " + Text.CalcHeight("Mission_SMO".Translate(), listing.ColumnWidth));
                     listing.Label(failed ? "MissionFailed_SMO".Translate("'" + selectedMission.def.LabelCap + "'") : "Mission_SMO".Translate("'" + selectedMission.def.LabelCap + "'") + "... ");
                     if (!failed)
                     {
