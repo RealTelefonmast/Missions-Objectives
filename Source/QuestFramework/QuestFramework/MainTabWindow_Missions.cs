@@ -950,12 +950,14 @@ namespace StoryFramework
             bool mouseOnSkill = Mouse.IsOver(SkillRequirementRect);
             if (mouseOnSkill)
             {
-                List<Pawn> pawns = cachedPawns.TryGetValue(objective.def);
-                foreach (Pawn pawn in pawns)
+                if (cachedPawns.TryGetValue(objective.def, out List<Pawn> pawns))
                 {
-                    if (pawn != null)
+                    foreach (Pawn pawn in pawns)
                     {
-                        TargetHighlighter.Highlight(pawn, false, true, false);
+                        if (pawn != null)
+                        {
+                            TargetHighlighter.Highlight(pawn, false, true, false);
+                        }
                     }
                 }
             }
@@ -1124,6 +1126,7 @@ namespace StoryFramework
             bool any = def.targetSettings?.any ?? false || def.type == ObjectiveType.Research;
             bool multi = targets?.Count > 1 && !any && def.type != ObjectiveType.Research;
             bool travel = def.type == ObjectiveType.Travel;
+            int count = targets.Count;
             string pre = ("Req" + def.type.ToString() + (travel ? def.travelSettings.mode.ToString() : "") + (multi ? "Plural" : "") + "_SMO");
             if (pre.CanTranslate())
             {
@@ -1134,7 +1137,7 @@ namespace StoryFramework
                     switch (def.type)
                     {
                         case ObjectiveType.Research:
-                            label += multi ? "" : ": " + def.BestPotentialStation.LabelCap;
+                            label += ": " + def.BestPotentialStation.LabelCap + (count > 1 ? " [+" + (count - 1) + "]" : "");
                             break;
                         case ObjectiveType.ConstructOrCraft:
                             break;

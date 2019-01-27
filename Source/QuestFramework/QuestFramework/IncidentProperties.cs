@@ -205,27 +205,30 @@ namespace StoryFramework
                 List<Thing> things = SpawnThings(out List<List<Thing>> groups, ref targets);
                 SpawnAround(parms.spawnCenter, map, things, ref targets, out bool p);
                 label = p ? "AppearPlural_SMO".Translate() : "Appear_SMO".Translate();
-                message = p ? "AppearDescPlural_SMO".Translate() : "AppearDesc_SMO".Translate(targets.targets[0]);
+                message = p ? "AppearDescPlural_SMO".Translate() : "AppearDesc_SMO".Translate(targets.targets?[0].Thing.LabelCap);
             }
             if (type == IncidentType.Skyfaller)
             {
                 int count = 0;
-                foreach (ThingSkyfaller skyfaller in spawnSettings.skyfallers)
+                var sortedList = spawnSettings.skyfallers.OrderBy(x => x.chance).ToArray();
+                for(int i = 0; i < sortedList.Count(); i++)
                 {
-                    if (Rand.Chance(skyfaller.chance))
+                    ThingSkyfaller skyfaller = sortedList[i];
+                    if (Rand.Chance(skyfaller.chance) || (spawnSettings.singleChance && i == sortedList.Count() - 1))
                     {
-                        List<IntVec3> pos = positionFilter.FindCells(map, skyfaller.amount,null,spawnSettings.skyfallers.ThingDefs());
-                        for (int i = 0; i < skyfaller.amount; i++)
+                        List<IntVec3> pos = positionFilter.FindCells(map, skyfaller.amount, null, spawnSettings.skyfallers.ThingDefs());
+                        for (int ii = 0; ii < skyfaller.amount; ii++)
                         {
                             count++;
-                            Skyfaller skyfallerThing = SkyfallerMaker.SpawnSkyfaller(skyfaller.skyfallerDef, skyfaller.innerThing, pos[i], map);
+                            Skyfaller skyfallerThing = SkyfallerMaker.SpawnSkyfaller(skyfaller.skyfallerDef, skyfaller.innerThing, pos[ii], map);
                             targets.targets.Add(skyfallerThing.innerContainer[0]);
                         }
+                        if (spawnSettings.singleChance) { break; }
                     }
                 }
                 bool plural = count > 1;
                 label = !plural ? "Skyfaller_SMO".Translate() : "SkyfallerPlural_SMO".Translate();
-                message = !plural ? "SkyfallerDesc_SMO".Translate(targets.targets[0]) : "SkyfallerDescPlural_SMO".Translate();
+                message = !plural ? "SkyfallerDesc_SMO".Translate(targets.targets?[0].Thing.LabelCap) : "SkyfallerDescPlural_SMO".Translate();
             }
             if (type == IncidentType.Raid)
             {

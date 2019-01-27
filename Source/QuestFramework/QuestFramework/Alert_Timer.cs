@@ -13,7 +13,6 @@ namespace StoryFramework
         public Alert_Timer()
         {
             base.defaultLabel = "TimerAlert_SMO".Translate();
-
         }
 
         public bool TimerRunningOut()

@@ -46,7 +46,7 @@ namespace StoryFramework
             get
             {
                 List<ThingValue> targets = Objective.def.targetSettings?.targets;
-                if (targets.NullOrEmpty())
+                if (!targets.NullOrEmpty())
                 {
                     return targets.Find(tv => tv.ThingDef == Station.def).value;
                 }
@@ -69,7 +69,7 @@ namespace StoryFramework
                     if (Distance > 1)
                     {
                         IntVec3 root = Station.Position;
-                        if (CellFinder.TryFindRandomCellNear(root, Map, Distance * Distance, new Predicate<IntVec3>(v => v.DistanceTo(root) > Distance && v.DistanceTo(Station.Position) < Distance + 1 && GenSight.LineOfSight(v, root, Map)), out IntVec3 result))
+                        if (CellFinder.TryFindRandomCellNear(root, Map, Distance * Distance, new Predicate<IntVec3>(v => v.DistanceTo(root) >= Distance && v.DistanceTo(root) <= (Distance + 1) && GenSight.LineOfSight(v, root, Map)), out IntVec3 result))
                         {
                             return result;
                         }

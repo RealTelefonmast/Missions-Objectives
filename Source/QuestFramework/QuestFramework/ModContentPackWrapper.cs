@@ -46,7 +46,7 @@ namespace StoryFramework
         {
             get
             {
-                return MCP.AllDefs.Any(d => d is MissionDef && !(d as MissionDef).IsSeen);
+                return MCP.AllDefs.Any(d => d is MissionDef && (!(d as MissionDef)?.IsSeen ?? false));
             }
         }
 

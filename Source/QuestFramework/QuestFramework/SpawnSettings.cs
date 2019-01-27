@@ -9,7 +9,8 @@ namespace StoryFramework
 {
     public class SpawnSettings
     {
-        public SpawnMode mode = SpawnMode.Stockpile; 
+        public SpawnMode mode = SpawnMode.Stockpile;
+        public bool singleChance = false;
         public List<ThingValue> spawnList = new List<ThingValue>();
         public List<ThingSkyfaller> skyfallers = new List<ThingSkyfaller>();
     }

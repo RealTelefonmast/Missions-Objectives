@@ -306,8 +306,7 @@ namespace StoryFramework
                 {
                     if (!ModFolder.Any(mcpw => mcpw.identifier == mcp.Identifier))
                     {
-                        ModContentPackWrapper mcpw = new ModContentPackWrapper(mcp.Identifier);
-                        ModFolder.Add(mcpw);
+                        ModFolder.Add(new ModContentPackWrapper(mcp.Identifier));
                     }
                 }
             }
