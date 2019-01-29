@@ -8,6 +8,7 @@
 	<!-- Research Stations -->
 	<Stations_SMO>The best station for this objective would be: {0} \nHowever, the following stations can be used as well:</Stations_SMO>
 	<SkillRequirementsInfo_SMO>This objective requires at least one of your colonists to have one or more specific skills:</SkillRequirementsInfo_SMO>
+	<ExtraStations_SMO>You can also use these other stations for the objective: {0}</ExtraStations_SMO>
 	<MissionTimer_SMO>Timer</MissionTimer_SMO>
 		
 	<InfoCard_SMO>Get detailed information of the objective.</InfoCard_SMO>

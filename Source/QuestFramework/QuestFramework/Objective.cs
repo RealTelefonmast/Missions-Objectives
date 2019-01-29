@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using RimWorld;
 using Verse;
-using Verse.AI;
+using UnityEngine;
 
 namespace StoryFramework
 {
@@ -340,6 +338,7 @@ namespace StoryFramework
                 amount *= 500f;
             }
             workDone += amount;
+            workDone = Mathf.Clamp(workDone, 0, def.workAmount);
         }
 
         public MOState CurrentState

@@ -822,7 +822,7 @@ namespace StoryFramework
             Rect ObjectiveContracted = ObjectiveRect.ContractedBy(6f);
             GUI.BeginGroup(ObjectiveContracted);
             float tabHeight = 60f;
-            float viewHeight = SelectedMission.objectives.Where(o => o.Active).Count() * tabHeight;
+            float viewHeight = SelectedMission.objectives.Where(o => o.CurrentState != MOState.Inactive || DebugSettings.godMode).Count() * tabHeight;
             Rect outRect = new Rect(0f, 0f, ObjectiveContracted.width, ObjectiveContracted.height);
             Rect viewRect = new Rect(0f, 0f, ObjectiveContracted.width, viewHeight);
             Widgets.BeginScrollView(outRect, ref StoryManager.objectiveScrollPos, viewRect, false);
@@ -871,7 +871,17 @@ namespace StoryFramework
                 GUI.color = Color.white;
             }
             Rect InfoCardAreaRect = new Rect(TargetRect.x, TargetRect.y, TargetRect.width + InfoCardRect.width, TargetRect.height);
-            TooltipHandler.TipRegion(InfoCardAreaRect, "InfoCard_SMO".Translate());
+            if (objective.def.type == ObjectiveType.Research || objective.def.customSettings.usesStation)
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine();
+                foreach(ThingValue tv in objective.def.targetSettings.targets.Where(x => x.ThingDef != objective.def.BestPotentialStation))
+                {
+                    sb.AppendLine("    - " + tv.ThingDef.LabelCap);
+                }         
+                TooltipHandler.TipRegion(TargetRect, "ExtraStations_SMO".Translate(sb.ToString().TrimEndNewlines()));
+            }
+            TooltipHandler.TipRegion(InfoCardRect, "InfoCard_SMO".Translate());
             if (Widgets.ButtonInvisible(TargetRect) || Widgets.ButtonImage(InfoCardRect, StoryMats.info2, GUI.color))
             {
                 Find.WindowStack.Add(CurObjectiveInfo = new Dialog_ObjectiveInformation(objective));
@@ -905,7 +915,7 @@ namespace StoryFramework
 
             //SkillRequirements
             Rect SkillRequirementRect = new Rect();
-            if(objective.def.skillRequirements.Count > 0)
+            if (objective.def.skillRequirements.Count > 0)
             {
                 bool check = BarRect.width + BotBarRect.width > 0f;
                 SkillRequirementRect = new Rect(TabRect.xMax - (10f + (check ? 180f : 90f)), 0f, 90f, TabRect.height);
@@ -943,7 +953,7 @@ namespace StoryFramework
                     sb2.AppendLine("       - " + sr.Summary);
                 }
                 TooltipHandler.TipRegion(SkillRequirementRect, pawns.NullOrEmpty() ? "PawnListEmpty_SMO".Translate(sb2) : "PawnList_SMO".Translate(sb));
-            }            
+            }
             GUI.EndGroup();
             SkillRequirementRect.x += 5f;
             SkillRequirementRect.y += 5f + (TabRect.height * num);
@@ -979,12 +989,6 @@ namespace StoryFramework
                 SelectedObjective = objective;
             }
             TabRect = TabRect.ExpandedBy(5f);
-            if (objective.CurrentState == MOState.Failed)
-            {
-                GUI.color = Color.red;
-                Widgets.DrawHighlight(TabRect);
-                GUI.color = Color.white;
-            }
             bool mouseOver = Mouse.IsOver(TabRect);
             if (mouseOver || this.SelectedObjective == objective)
             {
@@ -1126,7 +1130,7 @@ namespace StoryFramework
             bool any = def.targetSettings?.any ?? false || def.type == ObjectiveType.Research;
             bool multi = targets?.Count > 1 && !any && def.type != ObjectiveType.Research;
             bool travel = def.type == ObjectiveType.Travel;
-            int count = targets.Count;
+            int count = targets?.Count ?? 0;
             string pre = ("Req" + def.type.ToString() + (travel ? def.travelSettings.mode.ToString() : "") + (multi ? "Plural" : "") + "_SMO");
             if (pre.CanTranslate())
             {
