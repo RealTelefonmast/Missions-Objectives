@@ -83,7 +83,7 @@ namespace StoryFramework
                 }
                 if (timer > 0)
                 {
-                    timer -= 1;
+                    timer--;
                 }
                 if (Find.TickManager.TicksGame % GenTicks.TickRareInterval == 0)
                 {

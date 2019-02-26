@@ -137,6 +137,14 @@ namespace StoryFramework
             return true;
         }
 
+        public bool IsFailed
+        {
+            get
+            {
+                return CurrentState == MOState.Failed;
+            }
+        }
+
         public bool IsFinished
         {
             get

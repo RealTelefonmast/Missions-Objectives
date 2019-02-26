@@ -13,6 +13,9 @@ namespace StoryFramework
         public List<ThingValue> things = new List<ThingValue>();
         public List<IncidentDef> incidents = new List<IncidentDef>();
         public List<JobDef> jobs = new List<JobDef>();
+        public bool failedObjectives = false;
+        public bool failedMissions = false;
+
         public bool anyList = false;
         public bool anyObjective = false;
         public bool anyMission = false;
@@ -155,7 +158,15 @@ namespace StoryFramework
                 {
                     if (anyMission)
                     {
+                        if (failedMissions)
+                        {
+                            missions.Any(m => m.IsComplete(out bool failed) && failed);
+                        }
                         return missions.Any(m => m.IsComplete(out bool failed) && !failed);
+                    }
+                    if (failedMissions)
+                    {
+                        return missions.All(m => m.IsComplete(out bool failed) && failed);
                     }
                     return missions.All(m => m.IsComplete(out bool failed) && !failed);
                 }
@@ -171,7 +182,15 @@ namespace StoryFramework
                 {
                     if (anyObjective)
                     {
+                        if (failedObjectives)
+                        {
+                            return objectives.Any(o => o.IsFailed);
+                        }
                         return objectives.Any(o => o.IsFinished);
+                    }
+                    if (failedObjectives)
+                    {
+                        return objectives.All(o => o.IsFailed);
                     }
                     return objectives.All(o => o.IsFinished);
                 }

@@ -68,6 +68,7 @@
     <Compile Include="PawnInfo.cs" />
     <Compile Include="PawnSettings.cs" />
     <Compile Include="RaidSettings.cs" />
+    <Compile Include="StoryObject.cs" />
     <Compile Include="TargetLossSettings.cs" />
     <Compile Include="ThingSettings.cs" />
     <Compile Include="PositionFilter.cs" />

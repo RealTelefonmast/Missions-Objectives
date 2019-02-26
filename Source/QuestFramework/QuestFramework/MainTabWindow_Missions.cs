@@ -322,7 +322,7 @@ namespace StoryFramework
                             List<Def> cachedLocked = new List<Def>();
                             if (showLocked)
                             {
-                                cachedLocked = MCPW.MCP.AllDefs.Where(d => d is MissionDef && !(d as MissionDef).HardLocked && (d as MissionDef).CurrentState == MOState.Inactive).ToList();
+                                cachedLocked = MCPW.MCP.AllDefs.Where(d => d is MissionDef m && !m.HardLocked && !m.PathLocked && m.CurrentState == MOState.Inactive).ToList();
                                 lockedCount = cachedLocked.Count();
                                 lockedLabel = "Locked_SMO".Translate() + ":";
                                 lockedSize = Text.CalcSize(lockedLabel);

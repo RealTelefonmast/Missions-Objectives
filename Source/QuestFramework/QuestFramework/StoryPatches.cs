@@ -284,7 +284,7 @@ namespace StoryFramework
         {
             public static void Postfix(Thing __instance, bool respawningAfterLoad)
             {
-                if (!respawningAfterLoad && (__instance?.Map?.IsPlayerHome ?? false) && __instance.def.mote == null)
+                if ((__instance?.Map?.IsPlayerHome ?? false) && __instance.def.mote == null)
                 {
                     StoryHandler.Missions.ForEach(m => m.objectives.Where(o => o.CurrentState == MOState.Active).Do(o =>
                     {

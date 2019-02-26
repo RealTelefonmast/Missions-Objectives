@@ -60,6 +60,14 @@ namespace StoryFramework
             }
         }
 
+        public bool PathLocked
+        {
+            get
+            {
+                return requisites.failedMissions || requisites.failedObjectives;
+            }
+        }
+
         public bool HardLocked
         {
             get

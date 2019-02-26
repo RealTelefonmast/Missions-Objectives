@@ -48,7 +48,7 @@ namespace StoryFramework
         {
             Scribe_Collections.Look(ref Missions, "Missions", LookMode.Deep);
             Scribe_Collections.Look(ref LockedMissions, "LockedMission", LookMode.Def);
-            Scribe_Collections.Look(ref AllStations, "AllStations", LookMode.Deep);
+            //Scribe_Collections.Look(ref AllStations, "AllStations", LookMode.Deep);
             Scribe_Collections.Look(ref ModFolder, "ModFolder", LookMode.Deep);
             Scribe_References.Look(ref selectedObjective, "selectedObjective");
             Scribe_References.Look(ref selectedMission, "selectedMission");
