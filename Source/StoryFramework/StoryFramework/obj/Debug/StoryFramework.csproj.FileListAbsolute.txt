@@ -1,0 +1,2 @@
+C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\Story Framework 3.0\Source\StoryFramework\StoryFramework\obj\Debug\StoryFramework.csprojAssemblyReference.cache
+C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods\Story Framework 3.0\Source\StoryFramework\StoryFramework\obj\Debug\StoryFramework.csproj.CoreCompileInputs.cache

@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{87D11A83-2B6B-40DA-A265-819414457920}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>StoryFramework</RootNamespace>
+    <AssemblyName>StoryFramework</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="0Harmony">
+      <HintPath>..\..\..\Assemblies\0Harmony.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>..\..\..\..\..\RimWorldWin64_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+    <Reference Include="UnityEngine">
+      <HintPath>..\..\..\..\..\RimWorldWin64_Data\Managed\UnityEngine.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="FailConditions.cs" />
+    <Compile Include="IncidentProperties.cs" />
+    <Compile Include="IncidentWorker_Story.cs" />
+    <Compile Include="Requisites.cs" />
+    <Compile Include="ScenPart_Story.cs" />
+    <Compile Include="StoryAction.cs" />
+    <Compile Include="StoryIncidentDef.cs" />
+    <Compile Include="StoryProperties.cs" />
+    <Compile Include="StoryUtils.cs" />
+    <Compile Include="StoryWork\JobDriver_Story.cs" />
+    <Compile Include="Objectives\Objective_Research.cs" />
+    <Compile Include="StoryContentPack.cs" />
+    <Compile Include="StoryDef.cs" />
+    <Compile Include="StoryTree.cs" />
+    <Compile Include="StoryWork\WorkGiver_Story.cs" />
+    <Compile Include="ThemePack.cs" />
+    <Compile Include="ThingTracker.cs" />
+    <Compile Include="ThingValue.cs" />
+    <Compile Include="WorldComponent_Story.cs" />
+    <Compile Include="Mission.cs" />
+    <Compile Include="MissionDef.cs" />
+    <Compile Include="Objective.cs" />
+    <Compile Include="ObjectiveDef.cs" />
+    <Compile Include="StoryObject.cs" />
+    <Compile Include="StoryObjectDef.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StoryState.cs" />
+    <Compile Include="StoryTimer.cs" />
+    <Compile Include="TimerSettings.cs" />
+    <Compile Include="UI\MainTabWindow_Missions.cs" />
+    <Compile Include="UI\Materials.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
